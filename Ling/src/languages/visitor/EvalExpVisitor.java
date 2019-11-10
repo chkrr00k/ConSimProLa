@@ -1,24 +1,34 @@
 package languages.visitor;
 
 import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import languages.Environment;
+import languages.operators.AndExp;
 import languages.operators.AssignExp;
 import languages.operators.Block;
 import languages.operators.DivExp;
+import languages.operators.EqExp;
+import languages.operators.GtExp;
+import languages.operators.GteExp;
 import languages.operators.IfExp;
 import languages.operators.LValExp;
 import languages.operators.Line;
+import languages.operators.LtExp;
+import languages.operators.LteExp;
 import languages.operators.MinusExp;
 import languages.operators.ModExp;
 import languages.operators.MulExp;
+import languages.operators.NotExp;
 import languages.operators.NumExp;
 import languages.operators.OpExp;
+import languages.operators.OrExp;
 import languages.operators.PlusExp;
 import languages.operators.PowExp;
 import languages.operators.Program;
 import languages.operators.RValExp;
 import languages.operators.SeqExp;
+import languages.operators.UnaryExp;
 import languages.operators.WhileExp;
 
 public class EvalExpVisitor extends ExpVisitor {
@@ -47,6 +57,12 @@ public class EvalExpVisitor extends ExpVisitor {
 		e.getRight().accept(this);
 		arg2 = this.getResult();
 		this.value = f.apply(arg1, arg2);
+	}
+	private void helper(UnaryExp e, Function<Double, Double> f){
+		double arg1;
+		e.getTarget().accept(this);
+		arg1 = this.getResult();
+		this.value = f.apply(arg1);
 	}
 	
 	@Override
@@ -153,6 +169,62 @@ public class EvalExpVisitor extends ExpVisitor {
 	public void visit(Program e) {
 		e.getInstructions().forEach(i -> {
 			i.accept(this);
+		});
+	}
+
+	@Override
+	public void visit(OrExp e) {
+		this.helper(e, (l, r) -> {
+			return Math.abs(l) + Math.abs(r);
+		});
+	}
+
+	@Override
+	public void visit(AndExp e) {
+		this.helper(e, (l, r) -> {
+			return Math.abs(l) * Math.abs(r);
+		});
+	}
+
+	@Override
+	public void visit(EqExp e) {
+		this.helper(e, (l, r) -> {
+			return Double.compare(l, r) == 0 ? l : 0d;
+		});
+	}
+
+	@Override
+	public void visit(GtExp e) {
+		this.helper(e, (l, r) -> {
+			return l > r ? l : 0d;
+		});
+	}
+
+	@Override
+	public void visit(GteExp e) {
+		this.helper(e, (l, r) -> {
+			return l >= r ? l : 0d;
+		});
+	}
+
+	@Override
+	public void visit(LtExp e) {
+		this.helper(e, (l, r) -> {
+			return l < r ? l : 0d;
+		});
+	}
+
+	@Override
+	public void visit(LteExp e) {
+		this.helper(e, (l, r) -> {
+			return l <= r ? l : 0d;
+		});
+	}
+
+	@Override
+	public void visit(NotExp e) {
+		this.helper(e, (t) -> {
+			return t != 0d ? 0d : 1d;
 		});
 	}
 

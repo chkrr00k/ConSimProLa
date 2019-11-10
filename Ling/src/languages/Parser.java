@@ -21,8 +21,17 @@ import languages.operators.*;
  *  
  * LINE ::= SEQ ;
  * 
- * SEQ ::= EXP
- * SEQ ::= SEQ, EXP
+ * SEQ ::= EXP //BOEXP
+ * SEQ ::= SEQ, EXP //SEQ, BOEXP
+ * 
+ * BOEXP ::= ANDEXP
+ * BOEXP ::= BOEXP || ANDEXP
+ * 
+ * ANDEXP ::= RELEXP && ANDEXP
+ * ANDEXP ::= RELEXP
+ * 
+ * RELEXP ::= RELEXP [<|<=|>|>=|==] EXP
+ * RELEXP ::= EXP
  * 
  * EXP ::= TERM
  * EXP ::= EXP [+|-] TERM
@@ -32,18 +41,30 @@ import languages.operators.*;
  * ASSIGN ::= IDENT = IF
  * ASSIGN ::= IDENT = WHILE
  * 
- * IF ::= if EXP BLOCK else BLOCK
- * WHILE ::= while EXP BLOCK
+ * IF ::= if BOEXP BLOCK else BLOCK
+ * WHILE ::= while BOEXP BLOCK
  * 
  * TERM ::= POT
  * TERM ::= TERM [*|/|%] POT
  * 
- * POT ::= FACTOR
- * POT ::= FACTOR ^ POT
+ * POT ::= NEGEXP
+ * POT ::= NEGEXP ^ POT
  * 
+ * NEGEXP ::= FACTOR
+ * NEGEXP ::= ! FACTOR
+ * 
+ * FACTOR ::= - FACTOR
  * FACTOR ::= num
  * FACTOR ::= ( SEQ )
  * FACTOR ::= $IDENT
+ */
+/*
+ * definition
+ * a := (value => 9, expr => (3 + $variable), obj => o);
+ * use
+ * a.value = 2;
+ * a.obj.inner = 1;
+ * if $a.value { ... }
  */
 public class Parser {
 
@@ -68,6 +89,16 @@ public class Parser {
 	private final static String CLOSE_BLOCK = "}";
 	private final static String SEQ = ",";
 	private final static String LINE = ";";
+	
+	private final static String NOT = "not";
+	private final static String OR = "or";
+	private final static String AND = "and";
+	private final static String NEG = "!";
+	private final static String EQ = "==";
+	private final static String GT = ">";
+	private final static String GTE = ">=";
+	private final static String LT = "<";
+	private final static String LTE = "<=";
 	
 	public Parser(Scanner s) throws Exception {
 		this.scanner = s;
@@ -141,11 +172,11 @@ public class Parser {
 	}
 	
 	private Exp parseSeq() throws Exception{
-		Exp result = this.parseExp();
+		Exp result = this.parseBoExp();
 		while(this.currTok.isPresent()){
 			if(this.currTok.get().equals(Parser.SEQ)){
 				this.currTok = this.scanner.getNextToken();
-				Exp n = parseExp();
+				Exp n = parseBoExp();
 				if(n != null){
 					result = new SeqExp(result, n);
 				}else{
@@ -161,10 +192,10 @@ public class Parser {
 	
 	private Exp parseIf() throws Exception{
 		if(this.currTok.isPresent()){
-			Exp cond = this.parseExp();
+			Exp cond = this.parseBoExp();
 			Block posBlock = this.parseBlock();
 			IfExp ie = new IfExp(cond, posBlock);
-			if(this.currTok.get().equals(Parser.ELSE)){
+			if(this.currTok.isPresent() && this.currTok.get().equals(Parser.ELSE)){
 				this.currTok = this.scanner.getNextToken();
 				if(this.currTok.isPresent()){
 					Block negBlock = this.parseBlock();
@@ -179,7 +210,7 @@ public class Parser {
 	}
 	private Exp parseWhile() throws Exception{
 		if(this.currTok.isPresent()){
-			Exp cond = this.parseExp();
+			Exp cond = this.parseBoExp();
 			Block posBlock = this.parseBlock();
 			return new WhileExp(cond, posBlock);
 		}else{
@@ -187,7 +218,97 @@ public class Parser {
 		}
 		return null;
 	}
-
+	
+	public Exp parseBoExp() throws Exception{
+		Exp result = this.parseAndExp();
+		
+		while(this.currTok.isPresent()){
+			if(this.currTok.get().equals(Parser.OR)){
+				this.currTok = this.scanner.getNextToken();
+				Exp nextTerm = this.parseAndExp();
+				if(nextTerm != null){
+					result = new OrExp(result, nextTerm);
+				}else{
+					this.error("<or expression>");
+				}
+			}else{
+				return result;
+			}
+		}
+		
+		return result;
+	}
+	public Exp parseAndExp() throws Exception{
+		Exp result = this.parseRelExp();
+		
+		while(this.currTok.isPresent()){
+			if(this.currTok.get().equals(Parser.AND)){
+				this.currTok = this.scanner.getNextToken();
+				Exp nextTerm = this.parseRelExp();
+				if(nextTerm != null){
+					result = new AndExp(result, nextTerm);
+				}else{
+					this.error("<and expression>");
+				}
+			}else{
+				return result;
+			}
+		}
+		
+		return result;
+	}
+	public Exp parseRelExp() throws Exception{
+		Exp result = this.parseExp();
+		
+		while(this.currTok.isPresent()){
+			if(this.currTok.get().equals(Parser.EQ)){
+				this.currTok = this.scanner.getNextToken();
+				Exp nextTerm = this.parseExp();
+				if(nextTerm != null){
+					result = new EqExp(result, nextTerm);
+				}else{
+					this.error("<comparison expression>");
+				}
+			}else if(this.currTok.get().equals(Parser.GT)){
+				this.currTok = this.scanner.getNextToken();
+				Exp nextTerm = this.parseExp();
+				if(nextTerm != null){
+					result = new GtExp(result, nextTerm);
+				}else{
+					this.error("<comparison expression>");
+				}
+			}else if(this.currTok.get().equals(Parser.GTE)){
+				this.currTok = this.scanner.getNextToken();
+				Exp nextTerm = this.parseExp();
+				if(nextTerm != null){
+					result = new GteExp(result, nextTerm);
+				}else{
+					this.error("<comparison expression>");
+				}
+			}else if(this.currTok.get().equals(Parser.LT)){
+				this.currTok = this.scanner.getNextToken();
+				Exp nextTerm = this.parseExp();
+				if(nextTerm != null){
+					result = new LtExp(result, nextTerm);
+				}else{
+					this.error("<comparison expression>");
+				}
+			}else if(this.currTok.get().equals(Parser.LTE)){
+				this.currTok = this.scanner.getNextToken();
+				Exp nextTerm = this.parseExp();
+				if(nextTerm != null){
+					result = new LteExp(result, nextTerm);
+				}else{
+					this.error("<comparison expression>");
+				}
+			}else{
+				return result;
+			}
+		}
+		
+		return result;
+	}
+	
 	private Exp parseExp() throws Exception{
 		Exp result = this.parseTerm();
 		while(this.currTok.isPresent()){
@@ -268,7 +389,8 @@ public class Parser {
 	}
 	
 	private Exp parsePot() throws Exception {
-		Exp result = parseFactor();
+//		Exp result = parseFactor();
+		Exp result = parseNot();
 		if(this.currTok.isPresent()){
 			if(this.currTok.get().equals(Parser.POW)) {
 				this.currTok = scanner.getNextToken();
@@ -283,6 +405,25 @@ public class Parser {
 			} 
 		}
 		return result;   
+	}
+	
+	private Exp parseNot() throws Exception{
+		if(this.currTok.isPresent()){
+			if(this.currTok.get().equals(Parser.NOT)) {
+				
+				this.currTok = scanner.getNextToken();
+				Exp result = this.parseFactor();
+				if(result != null){
+					return new NotExp(result);
+				}else{
+					this.error("<value or variable>");
+				}
+			}else {
+				return this.parseFactor();
+			} 
+		}
+		this.error("<value or variable>");
+		return null;   
 	}
 
 	private Exp parseFactor() throws Exception {

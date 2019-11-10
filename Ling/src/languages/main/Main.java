@@ -8,7 +8,7 @@ import languages.visitor.ExpVisitor;
 
 public class Main {
 	public static void main(String[] args) {
-//		String e = "0.1 -1*4-(((1-1)^ 5)*1)^1 ";
+//		String e = "effect = not 1;";
 		String e = "test = 2;"
 				+ "if $test {"
 				+ "y = 0;"
@@ -19,7 +19,7 @@ public class Main {
 				+ " $g;"
 				+ "} else {"
 				+ " x = 4;"
-				+ " k = if (1) {"
+				+ " k = if ($x or 2) {"
 				+ "  y = 2;"
 				+ "  f = if $y {"
 				+ "   $y;"
@@ -41,7 +41,13 @@ public class Main {
 				+ "  t = 9;"
 				+ " }"
 				+ "}"
-				+ "w = 9;";
+				+ "w = 9;"
+				+ "boolean = (1 or 0) and 4;"
+				+ "lt = 9 == 9;"
+				+ "if not (5 == 5) {"
+				+ " effect = not $lt;"
+				+ "}"
+				+ "neg = -(8^2);";
 		
 		Program r;
 		
