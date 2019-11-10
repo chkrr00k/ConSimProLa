@@ -44,7 +44,7 @@ public class Main {
 				+ "w = 9;"
 				+ "boolean = (1 or 0) and 4;"
 				+ "lt = 9 == 9;"
-				+ "if not (5 == 5) {"
+				+ "if (5 != 5) {"
 				+ " effect = not $lt;"
 				+ "}"
 				+ "neg = -(8^2);";

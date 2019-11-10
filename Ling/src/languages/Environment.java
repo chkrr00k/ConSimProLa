@@ -26,7 +26,7 @@ public class Environment {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append("Environment [storage=");
+		builder.append("Environment [numerics=");
 		builder.append(this.doubleVariables);
 		builder.append("]");
 		return builder.toString();

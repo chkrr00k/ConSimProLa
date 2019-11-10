@@ -39,7 +39,7 @@ import languages.operators.*;
  * 
  * ASSIGN ::= IDENT = EXP
  * ASSIGN ::= IDENT = IF
- * ASSIGN ::= IDENT = WHILE
+ * ASSIGN ::= IDENT = WHILE //useless
  * 
  * IF ::= if BOEXP BLOCK else BLOCK
  * WHILE ::= while BOEXP BLOCK
@@ -56,14 +56,28 @@ import languages.operators.*;
  * FACTOR ::= - FACTOR
  * FACTOR ::= num
  * FACTOR ::= ( SEQ )
- * FACTOR ::= $IDENT
+ * FACTOR ::= $ IDENT
+ * 
+ * 
+ * ->
+ * OBJ ::= IDENT := ( OBJFIELDS )
+ * 
+ * OBJFIELDS ::= OBJFIELDDECL
+ * OBJFIELDS ::= OBJFIELDS, OBJFIELDDECL
+ * 
+ * OBJFIELDDECL ::= FIELD => EXP
+ * OBJFIELDDECL ::= FIELD => IF
+ * 
+ * OBJEXTRACTION ::= $ OBJ . FIELD
+ * OBJASSIGN ::= OBJ . FIELD = EXP
+ * OBJASSIGN ::= OBJ . FIELD = IF
+ * 
  */
 /*
  * definition
- * a := (value => 9, expr => (3 + $variable), obj => o);
+ * a := (value => 9, expr => (3 + $variable));
  * use
  * a.value = 2;
- * a.obj.inner = 1;
  * if $a.value { ... }
  */
 public class Parser {
@@ -93,8 +107,8 @@ public class Parser {
 	private final static String NOT = "not";
 	private final static String OR = "or";
 	private final static String AND = "and";
-	private final static String NEG = "!";
 	private final static String EQ = "==";
+	private final static String NEQ = "!=";
 	private final static String GT = ">";
 	private final static String GTE = ">=";
 	private final static String LT = "<";
@@ -266,6 +280,14 @@ public class Parser {
 				Exp nextTerm = this.parseExp();
 				if(nextTerm != null){
 					result = new EqExp(result, nextTerm);
+				}else{
+					this.error("<comparison expression>");
+				}
+			}else if(this.currTok.get().equals(Parser.NEQ)){
+				this.currTok = this.scanner.getNextToken();
+				Exp nextTerm = this.parseExp();
+				if(nextTerm != null){
+					result = new NeqExp(result, nextTerm);
 				}else{
 					this.error("<comparison expression>");
 				}

@@ -19,6 +19,7 @@ import languages.operators.LteExp;
 import languages.operators.MinusExp;
 import languages.operators.ModExp;
 import languages.operators.MulExp;
+import languages.operators.NeqExp;
 import languages.operators.NotExp;
 import languages.operators.NumExp;
 import languages.operators.OpExp;
@@ -190,6 +191,13 @@ public class EvalExpVisitor extends ExpVisitor {
 	public void visit(EqExp e) {
 		this.helper(e, (l, r) -> {
 			return Double.compare(l, r) == 0 ? l : 0d;
+		});
+	}
+
+	@Override
+	public void visit(NeqExp e) {
+		this.helper(e, (l, r) -> {
+			return Double.compare(l, r) == 0 ? 0d : l;
 		});
 	}
 

@@ -31,6 +31,7 @@ public abstract class ExpVisitor {
 	public abstract void visit(AndExp e);
 
 	public abstract void visit(EqExp e);
+	public abstract void visit(NeqExp e);
 	public abstract void visit(GtExp e);
 	public abstract void visit(GteExp e);
 	public abstract void visit(LtExp e);
