@@ -75,7 +75,7 @@ import languages.operators.*;
  */
 /*
  * definition
- * a := (value => 9, expr => (3 + $variable));
+ * a := (value => 9, expr => (3 + $variable), cond => if 1 { 4; } else { 1; });
  * use
  * a.value = 2;
  * if $a.value { ... }
@@ -185,6 +185,11 @@ public class Parser {
 		return null;
 	}
 	
+	public Exp parseObject() throws Exception{
+		Exp result = null;
+		
+		return result;
+	}
 	private Exp parseSeq() throws Exception{
 		Exp result = this.parseBoExp();
 		while(this.currTok.isPresent()){
@@ -233,7 +238,7 @@ public class Parser {
 		return null;
 	}
 	
-	public Exp parseBoExp() throws Exception{
+	private Exp parseBoExp() throws Exception{
 		Exp result = this.parseAndExp();
 		
 		while(this.currTok.isPresent()){
@@ -252,7 +257,7 @@ public class Parser {
 		
 		return result;
 	}
-	public Exp parseAndExp() throws Exception{
+	private Exp parseAndExp() throws Exception{
 		Exp result = this.parseRelExp();
 		
 		while(this.currTok.isPresent()){
@@ -271,7 +276,7 @@ public class Parser {
 		
 		return result;
 	}
-	public Exp parseRelExp() throws Exception{
+	private Exp parseRelExp() throws Exception{
 		Exp result = this.parseExp();
 		
 		while(this.currTok.isPresent()){
