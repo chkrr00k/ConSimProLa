@@ -51,7 +51,7 @@ public class Main {
 				+ "a := (a => 2, c => $neg, w => if 1 {4;}else{9;});"
 				+ "here = $a.w;"
 				+ ""
-				+ "o1 := ( a=>a := (p => 2, x => 3), g => 3, e => a = 0);"
+				+ "o1 := ( t=>a := (p => 2, x => 3), g => 3, e => a = 0);"
 				+ "boop = $o1.a.x;"
 				+ "o1 = 123;"
 				+ "o1.a.x = 9;";
@@ -72,7 +72,7 @@ public class Main {
 			r.accept(v);
 
 			System.out.println("result:\t\t" + v.getResult());
-			System.out.println("env:\t\t" + ((EvalExpVisitor) v).getEnvironment());
+			System.out.println(((EvalExpVisitor) v).getEnvironment());
 			System.out.println(p.isEmpty()? "Correct" : "Incorrect");
 		}catch(Exception e1){
 			System.err.println(e1.getMessage());

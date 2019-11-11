@@ -1,7 +1,14 @@
 package languages;
 
+import java.text.Collator;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
+import javax.swing.event.ListSelectionEvent;
 
 public class Environment {
 	private Map<String, Double> doubleVariables;
@@ -26,9 +33,13 @@ public class Environment {
 	 */
 	@Override
 	public String toString() {
+		List<String> envKey = new LinkedList<String>(this.doubleVariables.keySet());
+		Collections.sort(envKey, Collator.getInstance());
 		StringBuilder builder = new StringBuilder();
-		builder.append("Environment [numerics=");
-		builder.append(this.doubleVariables);
+		builder.append("Environment [\n");
+		envKey.stream().map(k -> {
+			return String.format("%-10s | %.2f\n", k, this.doubleVariables.get(k));
+		}).forEach(i -> builder.append(i));
 		builder.append("]");
 		return builder.toString();
 	}
