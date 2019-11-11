@@ -9,6 +9,7 @@ import languages.operators.AssignExp;
 import languages.operators.Block;
 import languages.operators.DivExp;
 import languages.operators.EqExp;
+import languages.operators.Field;
 import languages.operators.GtExp;
 import languages.operators.GteExp;
 import languages.operators.IfExp;
@@ -22,6 +23,7 @@ import languages.operators.MulExp;
 import languages.operators.NeqExp;
 import languages.operators.NotExp;
 import languages.operators.NumExp;
+import languages.operators.ObjAssignExp;
 import languages.operators.OpExp;
 import languages.operators.OrExp;
 import languages.operators.PlusExp;
@@ -234,6 +236,19 @@ public class EvalExpVisitor extends ExpVisitor {
 		this.helper(e, (t) -> {
 			return t != 0d ? 0d : 1d;
 		});
+	}
+
+	@Override
+	public void visit(ObjAssignExp e) {
+		e.getFields().forEach(f -> f.accept(this));
+	}
+
+	@Override
+	public void visit(Field e) {
+		e.getValue().accept(this);
+		if(!e.isNested()){
+			this.env.add(e.getName(), (double) this.value);
+		}
 	}
 
 }

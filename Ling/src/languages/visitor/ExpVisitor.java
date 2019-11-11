@@ -38,6 +38,9 @@ public abstract class ExpVisitor {
 	public abstract void visit(LteExp e);
 	public abstract void visit(NotExp e);
 
+	public abstract void visit(ObjAssignExp e);
+	public abstract void visit(Field e);
+
 	
 	
 }

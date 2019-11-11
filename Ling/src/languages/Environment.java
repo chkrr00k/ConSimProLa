@@ -5,6 +5,7 @@ import java.util.Map;
 
 public class Environment {
 	private Map<String, Double> doubleVariables;
+	
 
 	public Environment() {
 		this.doubleVariables = new HashMap<String, Double>();

@@ -44,7 +44,7 @@ public class Token {
 	}
 
 	public boolean isIdentifier() {
-		return this.tk.matches("\\w+") && !Parser.getAcceptedSeparators().contains(this.tk);
+		return this.tk.matches("[a-zA-Z]\\S*") && !Parser.getAcceptedSeparators().contains(this.tk);
 	}
 
 

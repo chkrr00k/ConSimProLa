@@ -8,7 +8,7 @@ import languages.visitor.ExpVisitor;
 
 public class Main {
 	public static void main(String[] args) {
-//		String e = "effect = not 1;";
+//		String e = "";
 		String e = "test = 2;"
 				+ "if $test {"
 				+ "y = 0;"
@@ -47,7 +47,14 @@ public class Main {
 				+ "if (5 != 5) {"
 				+ " effect = not $lt;"
 				+ "}"
-				+ "neg = -(8^2);";
+				+ "neg = -(8^2);"
+				+ "a := (a => 2, c => $neg, w => if 1 {4;}else{9;});"
+				+ "here = $a.w;"
+				+ ""
+				+ "o1 := ( a=>a := (p => 2, x => 3), g => 3, e => a = 0);"
+				+ "boop = $o1.a.x;"
+				+ "o1 = 123;"
+				+ "o1.a.x = 9;";
 		
 		Program r;
 		
@@ -56,7 +63,9 @@ public class Main {
 			ExpVisitor v = new EvalExpVisitor();
 
 			Parser p = Parser.of(e);
+			
 			r = p.parseProgram();
+		
 			
 			System.out.println("input:\t\t" + r);
 			
