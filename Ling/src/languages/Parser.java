@@ -72,13 +72,23 @@ import languages.operators.*;
  * OBJASSIGN ::= OBJ . FIELD = EXP
  * OBJASSIGN ::= OBJ . FIELD = IF
  * 
+ * ->
+ * ARRAY ::= IDENT := [ ] DIM
+ * ARRAY ::= IDENT := [ ELEMENTS ]
+ * 
+ * ELEMENTS ::= ELEMENT, ELEMENTS
+ * ELEMENTS ::= ELEMENT
+ * 
+ * FACTOR ::= $ ARRAY [ INDEX ]
+ * 
+ * ASSIGN ::= IDENT [ INDEX ] = EXP
+ * ASSIGN ::= IDENT [ INDEX ] = IF
  */
 /*
- * definition
- * a := (value => 9, expr => (3 + $variable), cond => if 1 { 4; } else { 1; });
- * use
- * a.value = 2;
- * if $a.value { ... }
+ * a[10] = 9
+ * a := [1,2,3,4,5]
+ * a := [] 10
+ * 
  */
 public class Parser {
 
