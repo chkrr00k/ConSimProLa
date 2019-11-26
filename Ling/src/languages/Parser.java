@@ -230,7 +230,6 @@ public class Parser {
 			}else if(this.currTok.get().equals(Parser.FIELDASSIGN)){
 				this.currTok = this.scanner.getNextToken();
 				Exp val;
-				System.out.println(this.currTok.get());
 				if(this.currTok.get().equals(Parser.IF)){
 					this.currTok = this.scanner.getNextToken();
 					val = this.parseIf();
@@ -238,7 +237,6 @@ public class Parser {
 					val = this.parseExp();
 				}
 				result = new Field(val);
-//				this.error("<field name>");
 			}else{
 				return result;
 			}
@@ -427,26 +425,7 @@ public class Parser {
 					}
 					result = new AssignExp(new LValExp(id), rVal);
 				}else if(this.currTok.isPresent() && this.currTok.get().equals(Parser.OBJASSIGN)){
-					this.currTok = this.scanner.getNextToken();/*
-					ObjAssignExp resultmp = new ObjAssignExp(id);
-					if(this.currTok.get().equals(Parser.OPEN_PAR)){
-						this.currTok = this.scanner.getNextToken();
-						while(this.currTok.isPresent()){
-							if(this.currTok.get().equals(Parser.SEQ)){
-								this.currTok = this.scanner.getNextToken();
-								continue;
-							}else{
-								Field field = this.parseField();
-								resultmp.add(field);
-								if(this.currTok.get().equals(Parser.CLOSE_PAR)){
-									this.currTok = this.scanner.getNextToken();
-									return resultmp;
-								}else{
-									this.currTok = this.scanner.getNextToken();
-								}
-							}
-						}
-					}*/
+					this.currTok = this.scanner.getNextToken();
 					return this.parseObj(id);
 				}else{
 					this.error(Parser.ASSIGN + " or " + Parser.OBJASSIGN);
