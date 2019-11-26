@@ -21,8 +21,8 @@ import languages.operators.*;
  *  
  * LINE ::= SEQ ;
  * 
- * SEQ ::= EXP //BOEXP
- * SEQ ::= SEQ, EXP //SEQ, BOEXP
+ * SEQ ::= BOEXP
+ * SEQ ::= SEQ, BOEXP
  * 
  * BOEXP ::= ANDEXP
  * BOEXP ::= BOEXP || ANDEXP
@@ -66,9 +66,8 @@ import languages.operators.*;
  * 
  * OBJFIELDDECL ::= FIELD => EXP
  * OBJFIELDDECL ::= FIELD => IF
- * ->
  * OBJFIELDDECL ::= => EXP
- * ->
+ * 
  * ->
  * OBJEXTRACTION ::= $ OBJ . FIELD
  * OBJASSIGN ::= OBJ . FIELD = EXP
@@ -86,7 +85,7 @@ import languages.operators.*;
  * ASSIGN ::= IDENT [ INDEX ] = EXP
  * ASSIGN ::= IDENT [ INDEX ] = IF
  */
-/*
+/* 
  * a := (c => 9, z := (a => 2), => 4)
  * 
  * a[10] = 9
