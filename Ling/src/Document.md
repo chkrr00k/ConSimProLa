@@ -1,6 +1,6 @@
-#Document
+# Document
 
-##Syntax
+## Syntax
 
 * The program is a set of instructions.
 * Instruction can be everything included in a block (i.e. everything in `{ ... }`), an if statement or a while statement.
@@ -9,7 +9,7 @@
 * A sequence is a set of expressions separated by `,`.
 * An expression is everything involving assignments, operation or comparisons between values.
 
-###Operations
+### Operations
 
 * Boolean operation can be performed using `and`, `or` keywords.
 * Boolean comparisons needs one of `[<|<=|>|>=|==|!=]` operators.
@@ -17,7 +17,7 @@
 * Every expression can contain brackets to apply precedence.
 * Unary operators are `-` (interpreted as `0 - <expression>`) and `not` for boolean negation.
 
-###Variables
+### Variables
 
 * A variable is a word that it's not a keyword and matches `[a-zA-Z]\\S*`.
 * To assign a scalar variable you use the `=` operator: `variable = 9;`.
@@ -28,7 +28,7 @@
 * To access object you can use the `.` operator and the `$` operator: `$object.field;`.
 * You can also add and modify object's field with the `.` operator: `object.field = 9;`.
 
-###Instructions
+### Instructions
 
 * When assigning a variable you can also use an `if` expression: `$var = if $condition { 7;} else { 8;};`.
 * When assigning a variable you can also use an `while` expression: `$var = while $condition { 7;};`. (this is very useless)
