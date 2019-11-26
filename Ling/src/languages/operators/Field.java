@@ -26,7 +26,7 @@ public class Field {
 
 
 	public String getName() {
-		return this.base + "." + this.id;
+		return this.base + (this.id.isEmpty() ? "" :  "." + this.id);
 	}
 	public Exp getValue() {
 		return this.value;
