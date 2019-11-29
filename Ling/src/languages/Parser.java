@@ -94,6 +94,7 @@ import languages.operators.*;
  * a := [1,2,3,4,5]
  * a := []10
  * a := []
+ * z = $a[2]
  * 
  * a := stream a map e: { e + 1; } filter e: { e > 1;} collect
  * stream <array> [[map|filter] <element>: <block> collect | reduce <a>, <b>: <block>];
@@ -117,8 +118,8 @@ import languages.operators.*;
  * 
  * for <ident> in <array> <block>
  * 
- * fun <name>(<p1>, <p2>) <block>
- * fun a(e){
+ * fun <name>: <p1>, <p2> -> <block>
+ * fun a: e -> {
  * 	$e + 1;
  * }
  */
