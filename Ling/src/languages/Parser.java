@@ -87,11 +87,40 @@ import languages.operators.*;
  */
 /* 
  * a := (c => 9, z := (a => 2), => 4)
+ * b := $a // obj b == obj a
+ * b = $a // b == 4
  * 
  * a[10] = 9
  * a := [1,2,3,4,5]
  * a := []10
+ * a := []
  * 
+ * a := stream a map e: { e + 1; } filter e: { e > 1;} collect
+ * stream <array> [[map|filter] <element>: <block> collect | reduce <a>, <b>: <block>];
+ * 
+ * immutable a;
+ * local a;
+ * 
+ * for el in arr {
+ * 	log $el;
+ * }
+ * when {
+ * 	<cond> -> <block>
+ * 	<cond> -> <block>
+ *  <cond> -> <block>
+ * }
+ * 
+ * 2 -> [] // [2]
+ * a := []
+ * 2 -> a // [2]
+ * c <- a // c == 2, a == []
+ * 
+ * for <ident> in <array> <block>
+ * 
+ * fun <name>(<p1>, <p2>) <block>
+ * fun a(e){
+ * 	$e + 1;
+ * }
  */
 public class Parser {
 

@@ -1,10 +1,13 @@
 package languages.operators;
 
+import java.util.List;
+import java.util.LinkedList;
+
 import languages.visitor.ExpVisitor;
 
 public class Field {
 
-	private String base;
+	private List<String> base;
 	private String id;
 	private Exp value;
 	public final boolean isTopValue;
@@ -12,7 +15,7 @@ public class Field {
 	public Field(String id, Exp value) {
 		this.id = id;
 		this.value = value;
-		this.base = "";
+		this.base = new LinkedList<String>();
 		this.isTopValue = false;
 	}
 
@@ -20,10 +23,14 @@ public class Field {
 	public Field(Exp value) {
 		this.value = value;
 		this.isTopValue = true;
-		this.base = "";
+		this.base = new LinkedList<String>();
 		this.id = "";
 	}
 
+
+	public String getId() {
+		return this.id;
+	}
 
 	public String getName() {
 		return this.base + (this.id.isEmpty() ? "" :  "." + this.id);
@@ -31,14 +38,26 @@ public class Field {
 	public Exp getValue() {
 		return this.value;
 	}
-	public String getBase() {
+	public List<String> getBase() {
 		return this.base;
 	}
-	public void setBase(String base) {
-		this.base = base;
+	public String getParent() {
+		return this.base.get(0);
+	}
+
+
+	public void addBase(String base) {
+		this.base.add(base);
+		if(this.isNested()){
+			((ObjAssignExp) this.getValue()).addParent(base);
+		}
+		
 	}
 	public boolean isNested(){
 		return this.getValue() instanceof ObjAssignExp;
+	}
+	public boolean isValue(){
+		return this.id.isEmpty();
 	}
 	
 	public void accept(ExpVisitor v) {

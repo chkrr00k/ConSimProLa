@@ -30,6 +30,6 @@
 
 ### Instructions
 
-* When assigning a variable you can also use an `if` expression: `$var = if $condition { 7;} else { 8;};`.
-* When assigning a variable you can also use an `while` expression: `$var = while $condition { 7;};`. (this is very useless)
+* When assigning a variable you can also use an `if` expression: `var = if $condition { 7;} else { 8;};`.
+* When assigning a variable you can also use an `while` expression: `var = while $condition { 7;};`. (this is very useless)
 * If and while also work as instructions

@@ -1,4 +1,4 @@
-package languages;
+package languages.environment;
 
 import java.text.Collator;
 import java.util.Collections;
@@ -11,17 +11,30 @@ import java.util.stream.Collectors;
 import javax.swing.event.ListSelectionEvent;
 
 public class Environment {
-	private Map<String, Double> doubleVariables;
+	private Map<String, Variable> doubleVariables;
 	
 
 	public Environment() {
-		this.doubleVariables = new HashMap<String, Double>();
+		this.doubleVariables = new HashMap<String, Variable>();
 	}
 	
 	public void add(String key, double value){
-		this.doubleVariables.put(key, value);
+		this.doubleVariables.put(key, new Value(key,value));
 	}
-	public double get(String key){
+	public Variable add(String id, Variable v) {
+		this.doubleVariables.put(id, v);
+		return v;
+	}
+
+	public double getValue(String key){
+		Variable v = this.doubleVariables.get(key);
+		if(v instanceof Valueable){
+			return ((Valueable) v).getValue(); 
+		}else{
+			throw new IllegalStateException(key);
+		}
+	}
+	public Variable get(String key){
 		return this.doubleVariables.get(key);
 	}
 	public boolean has(String key){
@@ -38,7 +51,12 @@ public class Environment {
 		StringBuilder builder = new StringBuilder();
 		builder.append("Environment [\n");
 		envKey.stream().map(k -> {
-			return String.format("%-10s | %.2f\n", k, this.doubleVariables.get(k));
+			Variable v = this.doubleVariables.get(k);
+			if(v instanceof Value){
+				return String.format("%-10s | %.2f\n", k, ((Value) v).getValue());
+			}else{
+				return String.format("%-10s | %s\n", k, v);
+			}
 		}).forEach(i -> builder.append(i));
 		builder.append("]");
 		return builder.toString();

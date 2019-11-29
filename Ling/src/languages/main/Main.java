@@ -8,7 +8,10 @@ import languages.visitor.ExpVisitor;
 
 public class Main {
 	public static void main(String[] args) {
-//		String e = "";
+/*		String e = "o3 := (=> 2, a => 3, b :=> (n => 3, c :=> (=> 2, l => 9, c :=> (=> 2, l => 9)), h => 3));"
+				+ "ab = $o3.b.c.c;"
+				+ "o1 := (a :=> (=> 0, p => 2, x => 3, => 3), g => 3, e => a = 0);";*/
+		
 		String e = "test = 2;"
 				+ "if $test {"
 				+ "y = 0;"
@@ -48,10 +51,10 @@ public class Main {
 				+ " effect = not $lt;"
 				+ "}"
 				+ "neg = -(8^2);"
-				+ "a := (a => 2, c => $neg, w => if 1 {4;}else{9;});"
+				+ "a := (a => 29, c => $neg, w => if 1 {4;}else{9;});"
 				+ "here = $a.w;"
 				+ ""
-				+ "o1 := ( a :=> (p => 2, x => 3, => 3), g => 3, e => a = 0);"
+				+ "o1 := ( a :=> (=> 0, p => 2, x => 3, => 3), g => 3, e => a = 0);"
 				+ "boop = $o1.a.x;"
 				+ "o1 = 123;"
 				+ "o1.a.x = 9;"

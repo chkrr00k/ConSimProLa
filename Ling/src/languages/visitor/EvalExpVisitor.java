@@ -1,9 +1,16 @@
 package languages.visitor;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
-import languages.Environment;
+import languages.environment.Complex;
+import languages.environment.Environment;
+import languages.environment.Value;
+import languages.environment.Valueable;
+import languages.environment.Variable;
 import languages.operators.AndExp;
 import languages.operators.AssignExp;
 import languages.operators.Block;
@@ -36,15 +43,21 @@ import languages.operators.WhileExp;
 
 public class EvalExpVisitor extends ExpVisitor {
 	private Object value;
-	private Environment env = new Environment();
+	private Environment env;
 	
+	
+	public EvalExpVisitor(Object value, Environment env) {
+		this.value = value;
+		this.env = env;
+	}
+
 	public EvalExpVisitor() {
-		this.value = 0d;
+		this(0d, new Environment());
 	}
 
 	public double getResult() {
 		if(this.value instanceof String && this.env.has((String) this.value)){
-			return this.env.get((String) this.value);
+			return this.env.getValue((String) this.value);
 		}else{
 			return (double) this.value;
 		}
@@ -66,6 +79,14 @@ public class EvalExpVisitor extends ExpVisitor {
 		e.getTarget().accept(this);
 		arg1 = this.getResult();
 		this.value = f.apply(arg1);
+	}
+	private Variable resolve(String name){
+		String[] dec = name.split("\\.");
+		Complex c = (Complex) this.env.get(dec[0]);
+		for(String s: Arrays.copyOfRange(dec, 1, dec.length - 1)){
+			c = (Complex) c.getField(s);
+		}
+		return c.getField(dec[dec.length - 1]);
 	}
 	
 	@Override
@@ -111,7 +132,9 @@ public class EvalExpVisitor extends ExpVisitor {
 	@Override
 	public void visit(RValExp e) {
 		if(this.env.has(e.getName())){
-			this.value = this.env.get(e.getName());
+			this.value = this.env.getValue(e.getName());
+		}else if(e.getName().contains(".")){
+			this.value = ((Valueable) this.resolve(e.getName())).getValue();
 		}else{
 			throw new RuntimeException("Invalid identifier: " + e.getName());
 		}
@@ -126,7 +149,19 @@ public class EvalExpVisitor extends ExpVisitor {
 		String id = ((LValExp) e.getLeft()).getName();
 		e.getRight().accept(this);
 		//XXX
-		this.env.add(id, (double) this.value);
+		if(this.env.has(id)){
+			Variable v = this.env.get(id);
+			if(v instanceof Complex){
+				((Complex) v).setValue((Double) this.value);
+			}else if(v instanceof Value){
+				((Value) v).setValue((Double) this.value);
+			}
+		}else if(id.contains(".")){
+			System.out.println(">> " + id);
+			((Valueable) this.resolve(id)).setValue((Double) this.value);
+		}else{
+			this.env.add(id, (double) this.value);
+		}
 	}
 
 	@Override
@@ -240,14 +275,52 @@ public class EvalExpVisitor extends ExpVisitor {
 
 	@Override
 	public void visit(ObjAssignExp e) {
+//		e.getFields().forEach(f -> f.accept(this));
+		
+//		this.env.add(e.getId(), new Complex(e.getId()));
 		e.getFields().forEach(f -> f.accept(this));
+		this.value = 0d;
 	}
 
 	@Override
 	public void visit(Field e) {
-		e.getValue().accept(this);
+/*		e.getValue().accept(this);
 		if(!e.isNested()){
 			this.env.add(e.getName(), (double) this.value);
+		}*/
+		
+		e.getValue().accept(this);
+		if(!e.isNested()){
+			Complex c = null;
+			if(e.getBase().size() == 1){
+
+				if(!this.env.has(e.getParent()) || !(this.env.get(e.getParent()) instanceof Complex)){
+					this.env.add(e.getParent(), new Complex(e.getParent()));
+				}
+				c = (Complex) this.env.get(e.getParent());
+			}else{
+				
+				List<String> bs = e.getBase();
+				Collections.reverse(bs);
+				if(this.env.has(bs.get(0))){
+					c = (Complex) this.env.get(bs.get(0));
+				}else{
+					c = new Complex(bs.get(0));
+					this.env.add(c.getName(), c);
+				}
+				for(String b : bs.subList(1, bs.size())){
+					if(c.hasFields(b)){
+						c = (Complex) c.getField(b);
+					}else{
+						c = (Complex) c.addField(new Complex(b));
+					}
+				}
+			}
+			if(e.isValue()){
+				c.setValue(new Value(e.getId(), (double)this.value));
+			}else{
+				c.addField(new Value(e.getId(), (double)this.value));
+			}
 		}
 	}
 

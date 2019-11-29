@@ -21,13 +21,13 @@ public class ObjAssignExp extends Exp {
 		if(field.isNested()){
 			((ObjAssignExp) field.getValue()).addParent(this.id);
 		}else{
-			field.setBase(this.id);
+			field.addBase(this.id);
 		}
 	}
 
-	private void addParent(String base) {
+	public void addParent(String base) {
 		for(Field f : this.fields){
-			f.setBase(base + "." + f.getBase());
+			f.addBase(base);
 		}
 	}
 	public List<Field> getFields() {
