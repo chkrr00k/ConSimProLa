@@ -19,9 +19,11 @@ public abstract class ExpVisitor {
 	public abstract void visit(ModExp e);
 	
 	public abstract void visit(RValExp e);
+	public abstract void visit(RValArrayExp e);
+
 	public abstract void visit(LValExp e);
-	public abstract void visit(AssignExp e);
-	
+	public abstract void visit(LValArrayExp e);
+
 	public abstract void visit(SeqExp e);
 	public abstract void visit(Line e);
 
@@ -39,11 +41,14 @@ public abstract class ExpVisitor {
 	public abstract void visit(NotExp e);
 
 	public abstract void visit(ObjAssignExp e);
-	public abstract void visit(Field e);
+	public abstract void visit(AssignExp e);
 
 	public abstract void visit(ArrayAssignExp e);
 
-	public abstract void visit(RValArrayExp e);
+	public abstract void visit(Field e);
+
+	public abstract void visit(PopExp e);
+	public abstract void visit(PushExp e);
 
 	
 	

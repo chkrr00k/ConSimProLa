@@ -18,6 +18,14 @@ public class Array extends Variable {
 	public Variable get(int i){
 		return this.elements.get(i);
 	}
+	public void remove(int i) {
+		this.elements.remove(i);
+	}
+
+	public void push(Double value) {
+		this.elements.add(0, new Value(value));
+	}
+
 	public List<Variable> getAll(){
 		return this.elements;
 	}

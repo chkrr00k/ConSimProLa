@@ -14,6 +14,10 @@ public abstract class Variable {
 	public String getName() {
 		return this.name;
 	}
+	public void setName(String name) {
+		this.name = name;		
+	}
+
 	public boolean isImmutable() {
 		return this.immutable;
 	}

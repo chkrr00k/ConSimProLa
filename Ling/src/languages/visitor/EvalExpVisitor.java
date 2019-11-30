@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
+import javax.management.RuntimeErrorException;
+
 import languages.environment.Array;
 import languages.environment.Complex;
 import languages.environment.Environment;
@@ -22,6 +24,7 @@ import languages.operators.Field;
 import languages.operators.GtExp;
 import languages.operators.GteExp;
 import languages.operators.IfExp;
+import languages.operators.LValArrayExp;
 import languages.operators.LValExp;
 import languages.operators.Line;
 import languages.operators.LtExp;
@@ -36,8 +39,10 @@ import languages.operators.ObjAssignExp;
 import languages.operators.OpExp;
 import languages.operators.OrExp;
 import languages.operators.PlusExp;
+import languages.operators.PopExp;
 import languages.operators.PowExp;
 import languages.operators.Program;
+import languages.operators.PushExp;
 import languages.operators.RValArrayExp;
 import languages.operators.RValExp;
 import languages.operators.SeqExp;
@@ -144,7 +149,6 @@ public class EvalExpVisitor extends ExpVisitor {
 	}
 	@Override
 	public void visit(RValArrayExp e) {
-		System.out.println(e);
 		if(this.env.has(e.getId())){
 			Array a = (Array) this.env.get(e.getId());
 			e.getIndex().accept(this);
@@ -159,22 +163,39 @@ public class EvalExpVisitor extends ExpVisitor {
 		this.value = e.getName();
 	}
 	@Override
+	public void visit(LValArrayExp e) {
+		if(this.env.has(e.getId())){
+			Array a = (Array) this.env.get(e.getId());
+			e.getIndex().accept(this);
+			this.value = a.get(((Double) this.value).intValue());
+		}else{
+			throw new RuntimeException("Invalid array extraction: " + e);
+		}
+	}
+
+	@Override
 	public void visit(AssignExp e) {
 		e.getLeft().accept(this);
-		String id = ((LValExp) e.getLeft()).getName();
-		e.getRight().accept(this);
-		//XXX
-		if(this.env.has(id)){
-			Variable v = this.env.get(id);
-			if(v instanceof Complex){
-				((Complex) v).setValue((Double) this.value);
-			}else if(v instanceof Value){
-				((Value) v).setValue((Double) this.value);
+		if(e.getLeft() instanceof LValExp){
+			String id = ((LValExp) e.getLeft()).getName();
+			e.getRight().accept(this);
+			//XXX
+			if(this.env.has(id)){
+				Variable v = this.env.get(id);
+				if(v instanceof Complex){
+					((Complex) v).setValue((Double) this.value);
+				}else if(v instanceof Value){
+					((Value) v).setValue((Double) this.value);
+				}
+			}else if(id.contains(".")){
+				((Valueable) this.resolve(id)).setValue((Double) this.value);
+			}else{
+				this.env.add(id, (double) this.value);
 			}
-		}else if(id.contains(".")){
-			((Valueable) this.resolve(id)).setValue((Double) this.value);
-		}else{
-			this.env.add(id, (double) this.value);
+		}else if(e.getLeft() instanceof LValArrayExp){
+			Variable v = (Variable) this.value;
+			e.getRight().accept(this);
+			((Valueable) v).setValue((Double) this.value);
 		}
 	}
 
@@ -344,6 +365,31 @@ public class EvalExpVisitor extends ExpVisitor {
 			}else{
 				c.addField(new Value(e.getId(), (double)this.value));
 			}
+		}
+	}
+
+	@Override
+	public void visit(PopExp e) {
+		if(this.env.has(e.getArray())){
+			Array a = (Array) this.env.get(e.getArray());
+			Variable v =  a.get(0);
+			a.remove(0);
+			v.setName(e.getVariable());
+			this.env.add(e.getVariable(), v);
+		}else{
+			throw new RuntimeException("Not defined: " + e.getArray());
+		}
+	}
+
+	@Override
+	public void visit(PushExp e) {
+		if(this.env.has(e.getArray())){
+			Array a = (Array) this.env.get(e.getArray());
+			e.getResult().accept(this);
+			a.push((Double)this.value);
+			
+		}else{
+			throw new RuntimeException("Not defined: " + e.getArray());
 		}
 	}
 

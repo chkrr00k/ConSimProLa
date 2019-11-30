@@ -21,8 +21,11 @@ import languages.operators.*;
  *  
  * LINE ::= SEQ ;
  * 
- * SEQ ::= BOEXP
- * SEQ ::= SEQ, BOEXP
+ * SEQ ::= ARRPUSH
+ * SEQ ::= SEQ, ARRPUSH
+ * 
+ * ARRPUSH ::= BOEXP -> IDENT // #2 is an array
+ * ARRPUSH ::= BOEXP
  * 
  * BOEXP ::= ANDEXP
  * BOEXP ::= BOEXP || ANDEXP
@@ -41,6 +44,10 @@ import languages.operators.*;
  * ASSIGN ::= IDENT = EXP
  * ASSIGN ::= IDENT = IF
  * ASSIGN ::= IDENT = WHILE //useless
+ * ASSIGN ::= IDENT [ EXP ] = EXP
+ * ASSIGN ::= IDENT <- IDENT // #2 is an array
+ * 
+
  * 
  * IF ::= if BOEXP BLOCK else BLOCK
  * WHILE ::= while BOEXP BLOCK
@@ -58,6 +65,7 @@ import languages.operators.*;
  * FACTOR ::= num
  * FACTOR ::= ( SEQ )
  * FACTOR ::= $ IDENT
+ * FACTOR ::= $ ARRAY [ EXP ]
  * 
  * OBJ ::= IDENT := ( OBJFIELDS )
  * 
@@ -68,36 +76,25 @@ import languages.operators.*;
  * OBJFIELDDECL ::= FIELD => IF
  * OBJFIELDDECL ::= => EXP
  * 
- * ->
+ * ~>
  * OBJEXTRACTION ::= $ OBJ . FIELD
  * OBJASSIGN ::= OBJ . FIELD = EXP
  * OBJASSIGN ::= OBJ . FIELD = IF
+ * ~>
  * 
- * ->
- * ARRAY ::= IDENT := [ ] DIM
+ * ARRAY ::= IDENT := [ ]
  * ARRAY ::= IDENT := [ ELEMENTS ]
  * 
  * ELEMENTS ::= ELEMENT, ELEMENTS
  * ELEMENTS ::= ELEMENT
+ * ->
  * 
- * FACTOR ::= $ ARRAY [ INDEX ]
- * 
- * ASSIGN ::= IDENT [ INDEX ] = EXP
- * ASSIGN ::= IDENT [ INDEX ] = IF
  */
 /* 
- * a := (c => 9, z := (a => 2), => 4)
  * b := $a // obj b == obj a
- * b = $a // b == 4
  * 
- * a[10] = 9
- * a := [1,2,3,4,5]
- * a := []10
- * a := []
- * z = $a[2]
- * 
- * a := stream a map e: { e + 1; } filter e: { e > 1;} collect
- * stream <array> [[map|filter] <element>: <block> collect | reduce <a>, <b>: <block>];
+ * a := stream a map e { e + 1; } filter e { e > 1;} collect
+ * stream <array> [[map|filter] <element> <block> collect | reduce <a>, <b> <block>];
  * 
  * immutable a;
  * local a;
@@ -118,8 +115,8 @@ import languages.operators.*;
  * 
  * for <ident> in <array> <block>
  * 
- * fun <name>: <p1>, <p2> -> <block>
- * fun a: e -> {
+ * fun <name>: <p1>, <p2> <block>
+ * fun a: e {
  * 	$e + 1;
  * }
  */
@@ -163,6 +160,8 @@ public class Parser {
 	
 	private final static String OPEN_ARR = "[";
 	private final static String CLOSE_ARR = "]";
+	private final static String ARR_POP = "<-";
+	private final static String ARR_PUSH = "->";
 	
 	
 	public Parser(Scanner s) throws Exception {
@@ -278,11 +277,11 @@ public class Parser {
 	}
 	
 	private Exp parseSeq() throws Exception{
-		Exp result = this.parseBoExp();
+		Exp result = this.parseArrPush();
 		while(this.currTok.isPresent()){
 			if(this.currTok.get().equals(Parser.SEQ)){
 				this.currTok = this.scanner.getNextToken();
-				Exp n = parseBoExp();
+				Exp n = parseArrPush();
 				if(n != null){
 					result = new SeqExp(result, n);
 				}else{
@@ -298,7 +297,7 @@ public class Parser {
 	
 	private Exp parseIf() throws Exception{
 		if(this.currTok.isPresent()){
-			Exp cond = this.parseBoExp();
+			Exp cond = this.parseArrPush();
 			Block posBlock = this.parseBlock();
 			IfExp ie = new IfExp(cond, posBlock);
 			if(this.currTok.isPresent() && this.currTok.get().equals(Parser.ELSE)){
@@ -316,7 +315,7 @@ public class Parser {
 	}
 	private Exp parseWhile() throws Exception{
 		if(this.currTok.isPresent()){
-			Exp cond = this.parseBoExp();
+			Exp cond = this.parseArrPush();
 			Block posBlock = this.parseBlock();
 			return new WhileExp(cond, posBlock);
 		}else{
@@ -324,7 +323,16 @@ public class Parser {
 		}
 		return null;
 	}
-	
+	private Exp parseArrPush() throws Exception{
+		Exp result = this.parseBoExp();
+		 if(this.currTok.get().equals(Parser.ARR_PUSH)){
+			 this.currTok = this.scanner.getNextToken();
+			 System.out.println(this.currTok.get());
+			 result = new PushExp(result, this.currTok.get().get());
+			 this.currTok = this.scanner.getNextToken();
+		 }
+		return result;
+	}
 	private Exp parseBoExp() throws Exception{
 		Exp result = this.parseAndExp();
 		
@@ -442,9 +450,24 @@ public class Parser {
 					this.error("<value>");
 				}
 			}else if(this.currTok.get().isIdentifier()){
+				boolean array = false;
 				String id = this.currTok.get().toString();
-				this.currTok = this.scanner.getNextToken();
-				if(this.currTok.isPresent() && this.currTok.get().equals(Parser.ASSIGN)){
+				Optional<Token> t = Optional.empty();
+				Exp index = null;
+				if(((t = this.scanner.peek()).isPresent()) && t.get().equals(Parser.OPEN_ARR)){
+					this.currTok = this.scanner.getNextToken(); // it's the "["
+					this.currTok = this.scanner.getNextToken();
+					index = this.parseExp();
+					if(this.currTok.isPresent() && this.currTok.get().equals(Parser.CLOSE_ARR)){
+						this.currTok = this.scanner.getNextToken();
+						array = true;
+					}else{
+						this.error(Parser.CLOSE_ARR);
+					}
+				}else{
+					this.currTok = this.scanner.getNextToken();		
+				}
+				if(this.currTok.isPresent() && this.currTok.get().equals(Parser.ASSIGN)){					
 					Exp rVal = null;
 					this.currTok = this.scanner.getNextToken();
 					if(this.currTok.get().equals(Parser.IF)){
@@ -456,10 +479,16 @@ public class Parser {
 					}else{
 						rVal = this.parseExp();
 					}
-					result = new AssignExp(new LValExp(id), rVal);
+					result = new AssignExp(array ? new LValArrayExp(id, index) : new LValExp(id), rVal);
 				}else if(this.currTok.isPresent() && this.currTok.get().equals(Parser.OBJASSIGN)){
 					this.currTok = this.scanner.getNextToken();
 					return this.parseObj(id);
+				}else if(this.currTok.isPresent() && this.currTok.get().equals(Parser.ARR_POP)){
+					this.currTok = this.scanner.getNextToken();
+					if(this.currTok.isPresent() && this.currTok.get().isIdentifier()){
+						result = new PopExp(id, this.currTok.get().get());
+					}
+					this.currTok = this.scanner.getNextToken();
 				}else{
 					this.error(Parser.ASSIGN + " or " + Parser.OBJASSIGN);
 				}
@@ -607,10 +636,8 @@ public class Parser {
 					this.currTok = this.scanner.getNextToken();
 					return new RValArrayExp(id, index);
 				}else{
-					System.out.println(this.currTok);
 					this.error(Parser.CLOSE_ARR);
 				}
-				System.out.println(index);
 			}else{
 				this.currTok = this.scanner.getNextToken();
 				return new RValExp(id);

@@ -2,12 +2,11 @@ package languages.operators;
 
 import languages.visitor.ExpVisitor;
 
-public class RValArrayExp extends Exp {
-
+public class LValArrayExp extends Exp {
 	private String id;
 	private Exp index;
 	
-	public RValArrayExp(String id, Exp index) {
+	public LValArrayExp(String id, Exp index) {
 		this.id = id;
 		this.index = index;
 	}
@@ -25,11 +24,10 @@ public class RValArrayExp extends Exp {
 	public String getId() {
 		return this.id;
 	}
-
-	public Exp getIndex(){
+	public Exp getIndex() {
 		return this.index;
 	}
-
+	
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
@@ -39,6 +37,4 @@ public class RValArrayExp extends Exp {
 		builder.append("]");
 		return builder.toString();
 	}
-	
-
 }
