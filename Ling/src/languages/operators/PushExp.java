@@ -29,6 +29,18 @@ public class PushExp extends Exp {
 	public String getArray() {
 		return this.array;
 	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append(this.result);
+		builder.append(" -> ");
+		builder.append(this.array);
+		return builder.toString();
+	}
 	
 
 }

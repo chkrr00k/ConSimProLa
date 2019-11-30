@@ -46,6 +46,7 @@ import languages.operators.PushExp;
 import languages.operators.RValArrayExp;
 import languages.operators.RValExp;
 import languages.operators.SeqExp;
+import languages.operators.SizeExp;
 import languages.operators.UnaryExp;
 import languages.operators.WhileExp;
 
@@ -376,6 +377,7 @@ public class EvalExpVisitor extends ExpVisitor {
 			a.remove(0);
 			v.setName(e.getVariable());
 			this.env.add(e.getVariable(), v);
+			this.value = ((Valueable) v).getValue();
 		}else{
 			throw new RuntimeException("Not defined: " + e.getArray());
 		}
@@ -390,6 +392,16 @@ public class EvalExpVisitor extends ExpVisitor {
 			
 		}else{
 			throw new RuntimeException("Not defined: " + e.getArray());
+		}
+	}
+
+	@Override
+	public void visit(SizeExp e) {
+		if(this.env.has(e.getId())){
+			Array a = (Array) this.env.get(e.getId());
+			this.value = new Double(a.getAll().size());
+		}else{
+			throw new RuntimeException("Not defined: " + e.getId());
 		}
 	}
 

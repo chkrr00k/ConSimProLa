@@ -50,6 +50,8 @@ public abstract class ExpVisitor {
 	public abstract void visit(PopExp e);
 	public abstract void visit(PushExp e);
 
+	public abstract void visit(SizeExp e);
+
 	
 	
 }

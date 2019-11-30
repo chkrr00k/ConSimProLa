@@ -47,7 +47,6 @@ import languages.operators.*;
  * ASSIGN ::= IDENT [ EXP ] = EXP
  * ASSIGN ::= IDENT <- IDENT // #2 is an array
  * 
-
  * 
  * IF ::= if BOEXP BLOCK else BLOCK
  * WHILE ::= while BOEXP BLOCK
@@ -66,7 +65,9 @@ import languages.operators.*;
  * FACTOR ::= ( SEQ )
  * FACTOR ::= $ IDENT
  * FACTOR ::= $ ARRAY [ EXP ]
- * 
+ * ->
+ * FACTOR ::= size IDENT //ident is an array
+ * ->
  * OBJ ::= IDENT := ( OBJFIELDS )
  * 
  * OBJFIELDS ::= OBJFIELDDECL
@@ -91,13 +92,14 @@ import languages.operators.*;
  * 
  */
 /* 
+ * a := [1,2,3,4];
+ * s = size a;
+ * 
  * b := $a // obj b == obj a
  * 
  * a := stream a map e { e + 1; } filter e { e > 1;} collect
  * stream <array> [[map|filter] <element> <block> collect | reduce <a>, <b> <block>];
  * 
- * immutable a;
- * local a;
  * 
  * for el in arr {
  * 	log $el;
@@ -108,17 +110,13 @@ import languages.operators.*;
  *  <cond> -> <block>
  * }
  * 
- * 2 -> [] // [2]
- * a := []
- * 2 -> a // [2]
- * c <- a // c == 2, a == []
- * 
  * for <ident> in <array> <block>
  * 
  * fun <name>: <p1>, <p2> <block>
  * fun a: e {
  * 	$e + 1;
  * }
+ * a(2);
  */
 public class Parser {
 
@@ -162,6 +160,8 @@ public class Parser {
 	private final static String CLOSE_ARR = "]";
 	private final static String ARR_POP = "<-";
 	private final static String ARR_PUSH = "->";
+	
+	private final static String ARR_SIZE = "size";
 	
 	
 	public Parser(Scanner s) throws Exception {
@@ -327,7 +327,6 @@ public class Parser {
 		Exp result = this.parseBoExp();
 		 if(this.currTok.get().equals(Parser.ARR_PUSH)){
 			 this.currTok = this.scanner.getNextToken();
-			 System.out.println(this.currTok.get());
 			 result = new PushExp(result, this.currTok.get().get());
 			 this.currTok = this.scanner.getNextToken();
 		 }
@@ -646,6 +645,13 @@ public class Parser {
 			double val = this.currTok.get().asDouble();
 			this.currTok = this.scanner.getNextToken();
 			return new NumExp(val);
+		}else if(this.currTok.get().equals(Parser.ARR_SIZE)){
+			this.currTok = this.scanner.getNextToken();
+			if(this.currTok.isPresent() && this.currTok.get().isIdentifier()){
+				String id = this.currTok.get().get();
+				this.currTok = this.scanner.getNextToken();
+				return new SizeExp(id);
+			}
 		}
 		return null;
 	}
