@@ -161,6 +161,7 @@ public class Parser {
 	private final static String FIELDASSIGN = "=>";
 	private final static String FIELDOBJASSIGN = ":=>";
 	
+	
 	public Parser(Scanner s) throws Exception {
 		this.scanner = s;
 		this.currTok = this.scanner.getNextToken();
@@ -572,6 +573,7 @@ public class Parser {
 				this.error(Parser.CLOSE_PAR);
 			}
 		}else if(this.currTok.get().equals(Parser.RVAL)){
+			
 			this.currTok = this.scanner.getNextToken();
 			String id = this.currTok.get().toString();
 			this.currTok = this.scanner.getNextToken();

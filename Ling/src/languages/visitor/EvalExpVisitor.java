@@ -157,7 +157,6 @@ public class EvalExpVisitor extends ExpVisitor {
 				((Value) v).setValue((Double) this.value);
 			}
 		}else if(id.contains(".")){
-			System.out.println(">> " + id);
 			((Valueable) this.resolve(id)).setValue((Double) this.value);
 		}else{
 			this.env.add(id, (double) this.value);

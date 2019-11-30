@@ -8,6 +8,10 @@ public class Token {
 		this.tk = tk;
 	}
 
+	public String get() {
+		return tk;
+	}
+
 	public boolean isIntNumber() {
 		try{
 			Integer.parseInt(this.tk);
