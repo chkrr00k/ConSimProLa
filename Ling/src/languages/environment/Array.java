@@ -1,9 +1,36 @@
 package languages.environment;
 
-public class Array extends Variable {
+import java.util.LinkedList;
+import java.util.List;
+import java.util.stream.Collectors;
 
-	protected Array(String name) {
+public class Array extends Variable {
+	private List<Variable> elements;
+	
+	public Array(String name) {
 		super(name);
+		this.elements = new LinkedList<Variable>();
 	}
+
+	public void add(Variable value) {
+		this.elements.add(value);
+	}
+	public Variable get(int i){
+		return this.elements.get(i);
+	}
+	public List<Variable> getAll(){
+		return this.elements;
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append(super.getName());
+		builder.append(":= [");
+		builder.append(String.join(",", this.elements.stream().map(e -> e.toString()).collect(Collectors.toList())));
+		builder.append("]");
+		return builder.toString();
+	}
+	
 
 }

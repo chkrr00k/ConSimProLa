@@ -6,12 +6,14 @@ import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
+import languages.environment.Array;
 import languages.environment.Complex;
 import languages.environment.Environment;
 import languages.environment.Value;
 import languages.environment.Valueable;
 import languages.environment.Variable;
 import languages.operators.AndExp;
+import languages.operators.ArrayAssignExp;
 import languages.operators.AssignExp;
 import languages.operators.Block;
 import languages.operators.DivExp;
@@ -36,6 +38,7 @@ import languages.operators.OrExp;
 import languages.operators.PlusExp;
 import languages.operators.PowExp;
 import languages.operators.Program;
+import languages.operators.RValArrayExp;
 import languages.operators.RValExp;
 import languages.operators.SeqExp;
 import languages.operators.UnaryExp;
@@ -139,6 +142,18 @@ public class EvalExpVisitor extends ExpVisitor {
 			throw new RuntimeException("Invalid identifier: " + e.getName());
 		}
 	}
+	@Override
+	public void visit(RValArrayExp e) {
+		System.out.println(e);
+		if(this.env.has(e.getId())){
+			Array a = (Array) this.env.get(e.getId());
+			e.getIndex().accept(this);
+			this.value = ((Value) a.get(((Double) this.value).intValue())).getValue();
+		}else{
+			throw new RuntimeException("Invalid array extraction: " + e);
+		}
+	}
+
 	@Override
 	public void visit(LValExp e) {
 		this.value = e.getName();
@@ -279,6 +294,15 @@ public class EvalExpVisitor extends ExpVisitor {
 //		this.env.add(e.getId(), new Complex(e.getId()));
 		e.getFields().forEach(f -> f.accept(this));
 		this.value = 0d;
+	}
+
+	@Override
+	public void visit(ArrayAssignExp e) {
+		Array a = (Array) this.env.add(e.getId(), new Array(e.getId()));
+		e.getElements().stream().forEach(el -> {
+			el.accept(this);
+			a.add(new Value((Double) this.value));
+		});
 	}
 
 	@Override

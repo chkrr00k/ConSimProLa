@@ -10,9 +10,6 @@ public class RValExp extends Exp{
 		this.name = name;
 	}
 
-	public double getValue() {
-		return 2;
-	}
 	public String getName() {
 		return this.name;
 	}

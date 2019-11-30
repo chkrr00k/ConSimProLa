@@ -161,6 +161,9 @@ public class Parser {
 	private final static String FIELDASSIGN = "=>";
 	private final static String FIELDOBJASSIGN = ":=>";
 	
+	private final static String OPEN_ARR = "[";
+	private final static String CLOSE_ARR = "]";
+	
 	
 	public Parser(Scanner s) throws Exception {
 		this.scanner = s;
@@ -467,9 +470,9 @@ public class Parser {
 		return result;
 	}
 	
-	private ObjAssignExp parseObj(String id) throws Exception{
-		ObjAssignExp resultmp = new ObjAssignExp(id);
+	private ComplexAssignExp parseObj(String id) throws Exception{
 		if(this.currTok.get().equals(Parser.OPEN_PAR)){
+			ObjAssignExp resultmp = new ObjAssignExp(id);
 			this.currTok = this.scanner.getNextToken();
 			while(this.currTok.isPresent()){
 				if(this.currTok.get().equals(Parser.SEQ)){
@@ -486,8 +489,27 @@ public class Parser {
 					}
 				}
 			}
+			return resultmp;
+		}else if(this.currTok.get().equals(Parser.OPEN_ARR)){
+			this.currTok = this.scanner.getNextToken();
+			ArrayAssignExp resultmp = new ArrayAssignExp(id);
+			while(this.currTok.isPresent()){
+				if(this.currTok.get().equals(Parser.SEQ)){
+					this.currTok = this.scanner.getNextToken();
+					continue;
+				}else if(this.currTok.get().equals(Parser.CLOSE_ARR)){
+					this.currTok = this.scanner.getNextToken();
+					return resultmp;
+				}else{
+					Exp element = this.parseExp();
+					if(element == null){
+						this.error("<value>");
+					}
+					resultmp.add(element);
+				}
+			}
 		}
-		return resultmp;
+		return null;
 	}
 
 	private Exp parseTerm() throws Exception {
@@ -576,8 +598,23 @@ public class Parser {
 			
 			this.currTok = this.scanner.getNextToken();
 			String id = this.currTok.get().toString();
-			this.currTok = this.scanner.getNextToken();
-			return new RValExp(id);
+			Optional<Token> t = Optional.empty();
+			if(((t = this.scanner.peek()).isPresent()) && t.get().equals(Parser.OPEN_ARR)){
+				this.currTok = this.scanner.getNextToken(); // it's the "["
+				this.currTok = this.scanner.getNextToken();
+				Exp index = this.parseExp();
+				if(this.currTok.isPresent() && this.currTok.get().equals(Parser.CLOSE_ARR)){
+					this.currTok = this.scanner.getNextToken();
+					return new RValArrayExp(id, index);
+				}else{
+					System.out.println(this.currTok);
+					this.error(Parser.CLOSE_ARR);
+				}
+				System.out.println(index);
+			}else{
+				this.currTok = this.scanner.getNextToken();
+				return new RValExp(id);
+			}
 		}else if(this.currTok.get().isNumber()){
 			double val = this.currTok.get().asDouble();
 			this.currTok = this.scanner.getNextToken();

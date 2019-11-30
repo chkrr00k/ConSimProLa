@@ -6,22 +6,20 @@ import java.util.stream.Collectors;
 
 import languages.visitor.ExpVisitor;
 
-public class ObjAssignExp extends Exp {
+public class ObjAssignExp extends ComplexAssignExp {
 
-	private List<Field> fields;
-	private String id;
-	
+	private List<Field> fields;	
 	
 	public ObjAssignExp(String id) {
 		this.fields = new LinkedList<Field>();
-		this.id = id;
+		super.id = id;
 	}
 	public void add(Field field){
 		this.fields.add(field);
 		if(field.isNested()){
 			((ObjAssignExp) field.getValue()).addParent(this.id);
 		}else{
-			field.addBase(this.id);
+			field.addBase(super.id);
 		}
 	}
 
@@ -33,9 +31,7 @@ public class ObjAssignExp extends Exp {
 	public List<Field> getFields() {
 		return this.fields;
 	}
-	public String getId() {
-		return this.id;
-	}
+
 	
 	@Override
 	public void accept(ExpVisitor v) {
@@ -50,7 +46,7 @@ public class ObjAssignExp extends Exp {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append(id);
+		builder.append(super.id);
 		builder.append(" := (");
 		builder.append(String.join(",", this.fields.stream().map(e -> e.toString()).collect(Collectors.toList())));
 		builder.append(")");

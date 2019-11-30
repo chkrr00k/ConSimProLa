@@ -12,6 +12,9 @@ public class Value extends Variable implements Valueable{
 		this(name, 0d);
 	}
 
+	public Value(Double value) {
+		this("", value);
+	}
 	public Double getValue() {
 		return this.value;
 	}
