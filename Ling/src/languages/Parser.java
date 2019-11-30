@@ -65,9 +65,8 @@ import languages.operators.*;
  * FACTOR ::= ( SEQ )
  * FACTOR ::= $ IDENT
  * FACTOR ::= $ ARRAY [ EXP ]
- * ->
  * FACTOR ::= size IDENT //ident is an array
- * ->
+ * 
  * OBJ ::= IDENT := ( OBJFIELDS )
  * 
  * OBJFIELDS ::= OBJFIELDDECL
@@ -89,16 +88,18 @@ import languages.operators.*;
  * ELEMENTS ::= ELEMENT, ELEMENTS
  * ELEMENTS ::= ELEMENT
  * ->
- * 
+ * INSTRUCTION ::= FUNCDELC
+ * FUNCDECL ::= fun IDENT LAMBDA
+ * LMABDA ::= (ELEMENTS) BLOCK
+ * RETURN ::= return IDENT
+ * INSTRUCTION ::= RETURN ;
  */
 /* 
- * a := [1,2,3,4];
- * s = size a;
  * 
  * b := $a // obj b == obj a
  * 
- * a := stream a map e { e + 1; } filter e { e > 1;} collect
- * stream <array> [[map|filter] <element> <block> collect | reduce <a>, <b> <block>];
+ * a := stream a map (e) { e + 1; } filter (e) { e > 1;} collect
+ * stream <array> [[map|filter] (<element>) <block> collect | reduce (<a>, <b>) <block>];
  * 
  * 
  * for el in arr {
@@ -112,11 +113,13 @@ import languages.operators.*;
  * 
  * for <ident> in <array> <block>
  * 
- * fun <name>: <p1>, <p2> <block>
- * fun a: e {
+ * fun <name>(<p1>, <p2>) <block>
+ * fun a(e) {
  * 	$e + 1;
  * }
  * a(2);
+ * 
+ * arr := array(s);
  */
 public class Parser {
 
@@ -160,9 +163,10 @@ public class Parser {
 	private final static String CLOSE_ARR = "]";
 	private final static String ARR_POP = "<-";
 	private final static String ARR_PUSH = "->";
-	
 	private final static String ARR_SIZE = "size";
 	
+	private final static String FUNC = "fun";
+	private final static String RETURN = "return";
 	
 	public Parser(Scanner s) throws Exception {
 		this.scanner = s;
@@ -197,13 +201,76 @@ public class Parser {
 		}else if(this.currTok.get().equals(Parser.WHILE)){
 			this.currTok = this.scanner.getNextToken();
 			result = this.parseWhile();
+		}else if(this.currTok.get().equals(Parser.FUNC)){
+			this.currTok = this.scanner.getNextToken();
+			result = this.parseFunction();
+		}else if(this.currTok.get().equals(Parser.RETURN)){
+			this.currTok = this.scanner.getNextToken();
+			result = this.parseReturn();
 		}else{
 			result = this.parseLine();
 		}
 		
 		return result;
 	}
-	
+	private Instruction parseReturn() throws Exception {
+		ReturnOp result = null;
+		if(this.currTok.isPresent() && this.currTok.get().isIdentifier()){
+			result = new ReturnOp(this.currTok.get().get());
+			this.currTok = this.scanner.getNextToken();
+		}else{
+			result = new ReturnOp(this.parseBoExp());
+		}
+		if(!this.currTok.get().equals(Parser.LINE)){
+			this.error(Parser.LINE);
+		}else{
+			this.currTok = this.scanner.getNextToken();
+		}
+		return result;
+	}
+
+	private LambdaExp parseLambda() throws Exception{
+		LambdaExp result = new LambdaExp();
+		if(this.currTok.get().equals(Parser.OPEN_PAR)){
+			this.currTok = this.scanner.getNextToken();
+			boolean done = false;
+			while(this.currTok.isPresent() && !done){
+				if(this.currTok.get().equals(Parser.SEQ)){
+					this.currTok = this.scanner.getNextToken();
+					continue;
+				}else if(this.currTok.get().equals(Parser.CLOSE_PAR)){
+					this.currTok = this.scanner.getNextToken();
+					done = true;
+				}else{
+					result.addArgument(this.currTok.get().get());
+					this.currTok = this.scanner.getNextToken();
+				}
+			}
+			if(this.currTok.get().equals(Parser.OPEN_BLOCK)){
+				Block b = this.parseBlock();
+				result.add(b);
+			}else{
+				this.error(Parser.OPEN_BLOCK);
+			}
+		}else{
+			this.error(Parser.OPEN_PAR);
+		}
+		return result;
+	}
+	private Instruction parseFunction() throws Exception {
+		FunctionExp result = new FunctionExp();
+		if(this.currTok.isPresent()){
+			String name = this.currTok.get().get();
+			result.setName(name);
+			this.currTok = this.scanner.getNextToken();
+			result.add(this.parseLambda());
+
+		}else{
+			this.error("<identifier>");
+		}
+		return result;
+	}
+
 	private Block parseBlock() throws Exception {
 		Block result = new Block();
 		Instruction innerExp = null;
@@ -476,7 +543,7 @@ public class Parser {
 						this.currTok = this.scanner.getNextToken();
 						rVal = this.parseWhile();
 					}else{
-						rVal = this.parseExp();
+						rVal = this.parseBoExp();
 					}
 					result = new AssignExp(array ? new LValArrayExp(id, index) : new LValExp(id), rVal);
 				}else if(this.currTok.isPresent() && this.currTok.get().equals(Parser.OBJASSIGN)){

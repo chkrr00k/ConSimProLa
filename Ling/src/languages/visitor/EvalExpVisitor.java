@@ -21,11 +21,13 @@ import languages.operators.Block;
 import languages.operators.DivExp;
 import languages.operators.EqExp;
 import languages.operators.Field;
+import languages.operators.FunctionExp;
 import languages.operators.GtExp;
 import languages.operators.GteExp;
 import languages.operators.IfExp;
 import languages.operators.LValArrayExp;
 import languages.operators.LValExp;
+import languages.operators.LambdaExp;
 import languages.operators.Line;
 import languages.operators.LtExp;
 import languages.operators.LteExp;
@@ -45,6 +47,7 @@ import languages.operators.Program;
 import languages.operators.PushExp;
 import languages.operators.RValArrayExp;
 import languages.operators.RValExp;
+import languages.operators.ReturnOp;
 import languages.operators.SeqExp;
 import languages.operators.SizeExp;
 import languages.operators.UnaryExp;
@@ -53,15 +56,20 @@ import languages.operators.WhileExp;
 public class EvalExpVisitor extends ExpVisitor {
 	private Object value;
 	private Environment env;
-	
+	private boolean stop;
 	
 	public EvalExpVisitor(Object value, Environment env) {
 		this.value = value;
 		this.env = env;
+		this.stop = false;
 	}
 
 	public EvalExpVisitor() {
 		this(0d, new Environment());
+	}
+
+	public EvalExpVisitor(Environment env) throws CloneNotSupportedException {
+		this(0d, env.clone());
 	}
 
 	public double getResult() {
@@ -70,6 +78,9 @@ public class EvalExpVisitor extends ExpVisitor {
 		}else{
 			return (double) this.value;
 		}
+	}
+	public Object getValue(){
+		return this.value;
 	}
 	public Environment getEnvironment(){
 		return this.env;
@@ -100,46 +111,70 @@ public class EvalExpVisitor extends ExpVisitor {
 	
 	@Override
 	public void visit(PlusExp e) {
+		if(this.stop){
+			return;
+		}
 		this.helper(e, (a, b) -> {
 			return a + b;
 		});
 	}
 	@Override
 	public void visit(MinusExp e) {
+		if(this.stop){
+			return;
+		}
 		this.helper(e, (a, b) -> {
 			return a - b;
 		});
 	}
 	@Override
 	public void visit(MulExp e) {
+		if(this.stop){
+			return;
+		}
 		this.helper(e, (a, b) -> {
 			return a * b;
 		});
 	}
 	@Override
 	public void visit(DivExp e) {
+		if(this.stop){
+			return;
+		}
 		this.helper(e, (a, b) -> {
 			return a / b;
 		});
 	}
 	@Override
 	public void visit(PowExp e) {
+		if(this.stop){
+			return;
+		}
 		this.helper(e, (a, b) -> {
 			return Math.pow(a, b);
 		});
 	}
 	@Override
 	public void visit(NumExp e) {
+		if(this.stop){
+			return;
+		}
 		this.value = e.getVal();
 	}
 	@Override
 	public void visit(ModExp e) {
+		if(this.stop){
+			return;
+		}
 		this.helper(e, (a, b) -> {
 			return a % b;
 		});
 	}
 	@Override
 	public void visit(RValExp e) {
+		if(this.stop){
+			return;
+		}
 		if(this.env.has(e.getName())){
 			this.value = this.env.getValue(e.getName());
 		}else if(e.getName().contains(".")){
@@ -150,6 +185,9 @@ public class EvalExpVisitor extends ExpVisitor {
 	}
 	@Override
 	public void visit(RValArrayExp e) {
+		if(this.stop){
+			return;
+		}
 		if(this.env.has(e.getId())){
 			Array a = (Array) this.env.get(e.getId());
 			e.getIndex().accept(this);
@@ -161,10 +199,16 @@ public class EvalExpVisitor extends ExpVisitor {
 
 	@Override
 	public void visit(LValExp e) {
+		if(this.stop){
+			return;
+		}
 		this.value = e.getName();
 	}
 	@Override
 	public void visit(LValArrayExp e) {
+		if(this.stop){
+			return;
+		}
 		if(this.env.has(e.getId())){
 			Array a = (Array) this.env.get(e.getId());
 			e.getIndex().accept(this);
@@ -176,11 +220,13 @@ public class EvalExpVisitor extends ExpVisitor {
 
 	@Override
 	public void visit(AssignExp e) {
+		if(this.stop){
+			return;
+		}
 		e.getLeft().accept(this);
 		if(e.getLeft() instanceof LValExp){
 			String id = ((LValExp) e.getLeft()).getName();
 			e.getRight().accept(this);
-			//XXX
 			if(this.env.has(id)){
 				Variable v = this.env.get(id);
 				if(v instanceof Complex){
@@ -202,17 +248,26 @@ public class EvalExpVisitor extends ExpVisitor {
 
 	@Override
 	public void visit(SeqExp e) {
+		if(this.stop){
+			return;
+		}
 		e.getLeft().accept(this);
 		e.getRight().accept(this);		
 	}
 
 	@Override
 	public void visit(Line e) {
+		if(this.stop){
+			return;
+		}
 		e.getExp().accept(this);
 	}
 
 	@Override
 	public void visit(Block e) {
+		if(this.stop){
+			return;
+		}
 		e.getLines().forEach(l -> {
 			l.accept(this);
 		});
@@ -220,6 +275,9 @@ public class EvalExpVisitor extends ExpVisitor {
 
 	@Override
 	public void visit(IfExp e) {
+		if(this.stop){
+			return;
+		}
 		e.getCond().accept(this);
 //		Object tmpVal = this.value;
 		if((double)this.value != 0d){
@@ -232,15 +290,26 @@ public class EvalExpVisitor extends ExpVisitor {
 
 	@Override
 	public void visit(WhileExp e) {
+		if(this.stop){
+			return;
+		}
 		e.getCond().accept(this);
+		if(e.getCond() instanceof SizeExp){
+		}
 		while((double)this.value != 0d){
 			e.getPosCond().accept(this);
+			if(this.stop){
+				return;
+			}
 			e.getCond().accept(this);
 		}
 	}
 
 	@Override
 	public void visit(Program e) {
+		if(this.stop){
+			return;
+		}
 		e.getInstructions().forEach(i -> {
 			i.accept(this);
 		});
@@ -248,6 +317,9 @@ public class EvalExpVisitor extends ExpVisitor {
 
 	@Override
 	public void visit(OrExp e) {
+		if(this.stop){
+			return;
+		}
 		this.helper(e, (l, r) -> {
 			return Math.abs(l) + Math.abs(r);
 		});
@@ -255,6 +327,9 @@ public class EvalExpVisitor extends ExpVisitor {
 
 	@Override
 	public void visit(AndExp e) {
+		if(this.stop){
+			return;
+		}
 		this.helper(e, (l, r) -> {
 			return Math.abs(l) * Math.abs(r);
 		});
@@ -262,41 +337,59 @@ public class EvalExpVisitor extends ExpVisitor {
 
 	@Override
 	public void visit(EqExp e) {
+		if(this.stop){
+			return;
+		}
 		this.helper(e, (l, r) -> {
-			return Double.compare(l, r) == 0 ? l : 0d;
+			return Double.compare(l, r) == 0 ? l == 0? 1 : l : 0d;
 		});
 	}
 
 	@Override
 	public void visit(NeqExp e) {
+		if(this.stop){
+			return;
+		}
 		this.helper(e, (l, r) -> {
-			return Double.compare(l, r) == 0 ? 0d : l;
+			return Double.compare(l, r) == 0 ? 0d : l == 0? 1 : l;
 		});
 	}
 
 	@Override
 	public void visit(GtExp e) {
+		if(this.stop){
+			return;
+		}
 		this.helper(e, (l, r) -> {
-			return l > r ? l : 0d;
+			return l > r ? l == 0? 1 : l : 0d;
 		});
 	}
 
 	@Override
 	public void visit(GteExp e) {
+		if(this.stop){
+			return;
+		}
 		this.helper(e, (l, r) -> {
-			return l >= r ? l : 0d;
+			return l >= r ? l == 0? 1 : l : 0d;
 		});
 	}
 
 	@Override
 	public void visit(LtExp e) {
+		if(this.stop){
+			return;
+		}
 		this.helper(e, (l, r) -> {
-			return l < r ? l : 0d;
+			return l < r ? l == 0? 1 : l : 0d;
 		});
 	}
 
 	@Override
 	public void visit(LteExp e) {
+		if(this.stop){
+			return;
+		}
 		this.helper(e, (l, r) -> {
 			return l <= r ? l : 0d;
 		});
@@ -304,6 +397,9 @@ public class EvalExpVisitor extends ExpVisitor {
 
 	@Override
 	public void visit(NotExp e) {
+		if(this.stop){
+			return;
+		}
 		this.helper(e, (t) -> {
 			return t != 0d ? 0d : 1d;
 		});
@@ -311,6 +407,9 @@ public class EvalExpVisitor extends ExpVisitor {
 
 	@Override
 	public void visit(ObjAssignExp e) {
+		if(this.stop){
+			return;
+		}
 //		e.getFields().forEach(f -> f.accept(this));
 		
 //		this.env.add(e.getId(), new Complex(e.getId()));
@@ -320,6 +419,9 @@ public class EvalExpVisitor extends ExpVisitor {
 
 	@Override
 	public void visit(ArrayAssignExp e) {
+		if(this.stop){
+			return;
+		}
 		Array a = (Array) this.env.add(e.getId(), new Array(e.getId()));
 		e.getElements().stream().forEach(el -> {
 			el.accept(this);
@@ -329,6 +431,9 @@ public class EvalExpVisitor extends ExpVisitor {
 
 	@Override
 	public void visit(Field e) {
+		if(this.stop){
+			return;
+		}
 /*		e.getValue().accept(this);
 		if(!e.isNested()){
 			this.env.add(e.getName(), (double) this.value);
@@ -371,6 +476,9 @@ public class EvalExpVisitor extends ExpVisitor {
 
 	@Override
 	public void visit(PopExp e) {
+		if(this.stop){
+			return;
+		}
 		if(this.env.has(e.getArray())){
 			Array a = (Array) this.env.get(e.getArray());
 			Variable v =  a.get(0);
@@ -385,6 +493,9 @@ public class EvalExpVisitor extends ExpVisitor {
 
 	@Override
 	public void visit(PushExp e) {
+		if(this.stop){
+			return;
+		}
 		if(this.env.has(e.getArray())){
 			Array a = (Array) this.env.get(e.getArray());
 			e.getResult().accept(this);
@@ -397,12 +508,41 @@ public class EvalExpVisitor extends ExpVisitor {
 
 	@Override
 	public void visit(SizeExp e) {
+		if(this.stop){
+			return;
+		}
 		if(this.env.has(e.getId())){
 			Array a = (Array) this.env.get(e.getId());
 			this.value = new Double(a.getAll().size());
 		}else{
 			throw new RuntimeException("Not defined: " + e.getId());
 		}
+	}
+
+	@Override
+	public void visit(FunctionExp e) {
+		e.getInner().accept(this);
+		languages.environment.Function f = (languages.environment.Function) this.value;
+		this.env.add(e.getName(), f);
+	}
+
+	@Override
+	public void visit(LambdaExp e) {
+		try{
+			EvalExpVisitor v = new EvalExpVisitor(this.env);
+			this.value = new languages.environment.Function(v, e.getB(), e.getArguments());
+		}catch(CloneNotSupportedException e1){
+		}
+	}
+
+	@Override
+	public void visit(ReturnOp e) {
+		if(e.hasExp()){
+			e.getExp().accept(this);
+		}else{
+			this.value = this.env.get(e.getId());
+		}
+		this.stop = true;
 	}
 
 }

@@ -1,7 +1,10 @@
 package languages.main;
 
+import java.util.Arrays;
+
 import languages.Parser;
-import languages.operators.Instruction;
+import languages.environment.Function;
+import languages.environment.Value;
 import languages.operators.Program;
 import languages.visitor.EvalExpVisitor;
 import languages.visitor.ExpVisitor;
@@ -12,7 +15,16 @@ public class Main {
 				+ "ab = $o3.b.c.c;"
 				+ "o1 := (a :=> (=> 0, p => 2, x => 3, => 3), g => 3, e => a = 0);";*/
 		
-		String e = "test = 2;"
+		String e = ""
+				+ "fun array(length) {"
+				+ " result := [];"
+				+ " while size result < $length {"
+				+ "  0 -> result;"
+				+ " }"
+				+ " return 4;"
+				+ "}"
+				+ ""
+				+ "test = 2;"
 				+ "if $test {"
 				+ "y = 0;"
 				+ "b = if $y {"
@@ -73,6 +85,7 @@ public class Main {
 				+ "$z2 -> a1;"
 				+ "2*3 -> a1;"
 				+ "$o1 -> o3;"
+				+ "6 -> o3;"
 				+ "res := [];"
 				+ "s = size o3;"
 				+ "while size o3 {"

@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 
 import javax.swing.event.ListSelectionEvent;
 
-public class Environment {
+public class Environment implements Cloneable{
 	private Map<String, Variable> doubleVariables;
 	
 
@@ -18,6 +18,10 @@ public class Environment {
 		this.doubleVariables = new HashMap<String, Variable>();
 	}
 	
+	public Environment(Map<String, Variable> d) {
+		this.doubleVariables = new HashMap<String, Variable>(d);
+	}
+
 	public void add(String key, double value){
 		this.doubleVariables.put(key, new Value(key,value));
 	}
@@ -62,6 +66,9 @@ public class Environment {
 		return builder.toString();
 	}
 	
-	
+	@Override
+	public Environment clone() throws CloneNotSupportedException {
+		return new Environment(this.doubleVariables);
+	}
 	
 }
