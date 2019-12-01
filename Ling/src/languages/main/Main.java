@@ -127,10 +127,10 @@ public class Main {
 				+ "cc2 = $copy(&cc);"
 				+ "z21 = $arrayOf(&cc, 4);"
 //				+ "oa := (i :=> [1,2,3]);" //FIXME
-//				+ "ao := [:=>(=>3), (=>2)]" //FIXME
+//				+ "ao := [(=>3), (=>2)];" //FIXME
 				+ "c = $z21[3];"
 				+ "c.f = 9;";
-		
+
 		Program r;
 		
 		try{
