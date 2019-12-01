@@ -8,6 +8,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import languages.Parser;
+import languages.environment.Array;
 import languages.environment.Environment;
 import languages.environment.Value;
 import languages.operators.Program;
@@ -76,7 +77,6 @@ public class EvalTest {
 	@Test
 	public void testLte2() throws Exception {
 		Environment e = this.test("expected = 2 <= 4;");
-		System.out.println(((Value) e.get("expected")).getValue());
 		assertTrue((((Value) e.get("expected")).getValue().equals(2d)));
 	}
 	@Test
@@ -88,5 +88,21 @@ public class EvalTest {
 	public void testLt2() throws Exception {
 		Environment e = this.test("expected = 2 < 4;");
 		assertTrue((((Value) e.get("expected")).getValue().equals(2d)));
+	}
+	@Test
+	public void testRecursion() throws Exception {
+		Environment e = this.test(
+				"fun array(in){"
+				+ " if not $in {"
+				+ "  res := [];"
+				+ "  return res;"
+				+ " }else{"
+				+ "  res = $rec($in - 1);"
+				+ "  0 -> res;"
+				+ "  return res;"
+				+ " }"
+				+ "}"
+				+ "expected = $array(4);");
+		assertEquals(4, ((Array) e.get("expected")).getAll().size());
 	}
 }

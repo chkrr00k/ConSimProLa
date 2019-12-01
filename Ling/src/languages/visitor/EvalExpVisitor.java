@@ -206,7 +206,11 @@ public class EvalExpVisitor extends ExpVisitor implements Cloneable{
 		if(this.env.has(e.getId())){
 			Array a = (Array) this.env.get(e.getId());
 			e.getIndex().accept(this);
-			this.value = ((Value) a.get(((Double) this.value).intValue())).getValue();
+			if(a.get(((Double) this.value).intValue()) instanceof Value){
+				this.value = ((Value) a.get(((Double) this.value).intValue())).getValue();
+			}else{
+				this.value = a.get(((Double) this.value).intValue());
+			}
 		}else{
 			throw new RuntimeException("Invalid array extraction: " + e);
 		}
@@ -536,7 +540,12 @@ public class EvalExpVisitor extends ExpVisitor implements Cloneable{
 		if(this.env.has(e.getArray())){
 			Array a = (Array) this.env.get(e.getArray());
 			e.getResult().accept(this);
-			a.push((Double)this.value);
+			if(this.value instanceof Double){
+				a.push((Double)this.value);
+			}else{
+				a.push((Variable)this.value);
+			}
+			
 			
 		}else{
 			throw new RuntimeException("Not defined: " + e.getArray());

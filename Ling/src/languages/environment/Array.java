@@ -18,7 +18,7 @@ public class Array extends Variable {
 	}
 
 	public void add(Variable value) {
-		this.elements.add(value);
+		this.elements.add(value.clone());
 	}
 	public Variable get(int i){
 		return this.elements.get(i);
@@ -29,6 +29,10 @@ public class Array extends Variable {
 
 	public void push(Double value) {
 		this.elements.add(0, new Value(value));
+	}
+
+	public void push(Variable value) {
+		this.elements.add(0, value.clone());
 	}
 
 	public List<Variable> getAll(){

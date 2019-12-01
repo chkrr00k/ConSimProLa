@@ -42,6 +42,14 @@ public class Main {
 				+ "fun copy(input){"
 				+ " return input;"
 				+ "}"
+				+ "fun arrayOf(obj, len){"
+				+ " result := [];"
+				+ " while size result <= $len {"
+				+ "  &obj -> result;"
+				+ " }"
+				+ " return result;"
+				+ "}"
+				+ ""//stdlib
 				+ "test = 2;"
 				+ "if $test {"
 				+ "y = 0;"
@@ -117,9 +125,11 @@ public class Main {
 				+ "2 -> a2;"
 				+ "cc := (=>3, f => 4);"
 				+ "cc2 = $copy(&cc);"
+				+ "z21 = $arrayOf(&cc, 4);"
 //				+ "oa := (i :=> [1,2,3]);" //FIXME
 //				+ "ao := [:=>(=>3), (=>2)]" //FIXME
-				+ "";
+				+ "c = $z21[3];"
+				+ "c.f = 9;";
 		
 		Program r;
 		

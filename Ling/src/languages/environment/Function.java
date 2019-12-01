@@ -34,6 +34,7 @@ public class Function extends Variable {
 			this.visitor.getEnvironment().add(k, v);
 		});
 		EvalExpVisitor v = this.visitor.clone();
+		v.getEnvironment().add(this.getName(), this);
 		v.visit(this.b);
 		return v.getValue();
 	}
