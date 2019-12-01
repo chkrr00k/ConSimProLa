@@ -183,7 +183,11 @@ public class EvalExpVisitor extends ExpVisitor {
 			return;
 		}
 		if(this.env.has(e.getName())){
-			this.value = this.env.getValue(e.getName());
+			try{
+				this.value = this.env.getValue(e.getName());
+			}catch(IllegalStateException ex){
+				this.value = this.env.get(e.getName());
+			}
 		}else if(e.getName().contains(".")){
 			this.value = ((Valueable) this.resolve(e.getName())).getValue();
 		}else{
@@ -240,11 +244,15 @@ public class EvalExpVisitor extends ExpVisitor {
 					((Complex) v).setValue((Double) this.value);
 				}else if(v instanceof Value){
 					((Value) v).setValue((Double) this.value);
+				}else if(v instanceof Array){
+					((Variable) this.value).setName(id);
+					this.env.add(id, (Variable) this.value);
 				}
 			}else if(id.contains(".")){
 				((Valueable) this.resolve(id)).setValue((Double) this.value);
 			}else{
 				if(this.value instanceof Variable){
+					((Variable) this.value).setName(id);
 					this.env.add(id, (Variable) this.value);
 				}else{
 					this.env.add(id, (double) this.value);
@@ -392,7 +400,7 @@ public class EvalExpVisitor extends ExpVisitor {
 			return;
 		}
 		this.helper(e, (l, r) -> {
-			return l < r ? l == 0? 1 : l : 0d;
+			return l < r ? l == 0 ? 1 : l : 0d;
 		});
 	}
 
@@ -534,6 +542,7 @@ public class EvalExpVisitor extends ExpVisitor {
 	public void visit(FunctionExp e) {
 		e.getInner().accept(this);
 		languages.environment.Function f = (languages.environment.Function) this.value;
+		f.setName(e.getName());
 		this.env.add(e.getName(), f);
 	}
 
@@ -567,7 +576,6 @@ public class EvalExpVisitor extends ExpVisitor {
 			}
 			args.add((Variable) this.value);
 		});
-		System.out.println(args);
 		this.value = f.apply(args);
 	}
 

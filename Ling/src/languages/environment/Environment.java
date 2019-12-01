@@ -19,13 +19,19 @@ public class Environment implements Cloneable{
 	}
 	
 	public Environment(Map<String, Variable> d) {
-		this.doubleVariables = new HashMap<String, Variable>(d);
+		this.doubleVariables = new HashMap<String, Variable>();
+		d.forEach((k, v) -> {
+			this.doubleVariables.put(k, v.clone());
+		});
 	}
 
 	public void add(String key, double value){
 		this.doubleVariables.put(key, new Value(key,value));
 	}
 	public Variable add(String id, Variable v) {
+		if(!id.equals(v.getName())){
+			throw new IllegalArgumentException(id + " " + v);
+		}
 		this.doubleVariables.put(id, v);
 		return v;
 	}
@@ -35,7 +41,7 @@ public class Environment implements Cloneable{
 		if(v instanceof Valueable){
 			return ((Valueable) v).getValue(); 
 		}else{
-			throw new IllegalStateException(key);
+			throw new IllegalStateException(key + " " + v);
 		}
 	}
 	public Variable get(String key){

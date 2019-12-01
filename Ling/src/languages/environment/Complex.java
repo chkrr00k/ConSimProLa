@@ -15,6 +15,12 @@ public class Complex extends Variable implements Valueable{
 		this.v = Optional.empty();
 	}
 
+	private Complex(Complex c) {
+		this(c.getName());
+		c.fields.forEach(f -> this.fields.add(f.clone()));
+		this.v = c.v;
+	}
+
 	public boolean hasValue(){
 		return this.v.isPresent();
 	}
@@ -72,6 +78,11 @@ public class Complex extends Variable implements Valueable{
 		builder.append(String.join(",", this.fields.stream().map(e -> e.getName() + "=>" + e).collect(Collectors.toList())));
 		builder.append(")");
 		return builder.toString();
+	}
+
+	@Override
+	public Variable clone() {
+		return new Complex(this);
 	}
 
 	

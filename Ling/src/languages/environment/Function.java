@@ -1,6 +1,7 @@
 package languages.environment;
 
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -22,8 +23,16 @@ public class Function extends Variable {
 		this.args = arguments;
 	}
 	
+	private Function(Function f) {
+		this(f.visitor, f.b, new LinkedList<String>(f.args));
+	}
+
 	public Object apply(List<Variable> args){
-		this.combine(this.args, args).forEach((k, v) -> this.visitor.getEnvironment().add(k, v));
+		args = args.stream().map(e -> e.clone()).collect(Collectors.toList());
+		this.combine(this.args, args).forEach((k, v) -> {
+			v.setName(k);
+			this.visitor.getEnvironment().add(k, v);
+		});
 		this.visitor.visit(this.b);
 		return this.visitor.getValue();
 	}
@@ -42,6 +51,11 @@ public class Function extends Variable {
 		builder.append(")");
 		builder.append(this.b);
 		return builder.toString();
+	}
+
+	@Override
+	public Variable clone() {
+		return new Function(this);
 	}
 
 }

@@ -12,6 +12,11 @@ public class Array extends Variable {
 		this.elements = new LinkedList<Variable>();
 	}
 
+	private Array(Array a) {
+		this(a.getName());
+		a.elements.forEach(e -> this.elements.add(e.clone()));
+	}
+
 	public void add(Variable value) {
 		this.elements.add(value);
 	}
@@ -38,6 +43,11 @@ public class Array extends Variable {
 		builder.append(String.join(",", this.elements.stream().map(e -> e.toString()).collect(Collectors.toList())));
 		builder.append("]");
 		return builder.toString();
+	}
+
+	@Override
+	public Variable clone() {
+		return new Array(this);
 	}
 	
 

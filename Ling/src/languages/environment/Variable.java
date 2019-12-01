@@ -1,6 +1,6 @@
 package languages.environment;
 
-public abstract class Variable {
+public abstract class Variable implements Cloneable{
 	private String name;
 	private boolean immutable;
 	private boolean local;
@@ -61,7 +61,7 @@ public abstract class Variable {
 		}
 		return true;
 	}
-	
-	
+	@Override
+	public abstract Variable clone();
 	
 }
