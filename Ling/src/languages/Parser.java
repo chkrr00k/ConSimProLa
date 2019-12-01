@@ -68,6 +68,7 @@ import languages.operators.*;
  * FACTOR ::= $ IDENT
  * FACTOR ::= $ ARRAY [ EXP ]
  * FACTOR ::= size IDENT //ident is an array
+ * FACTOR ::= & IDENT 
  * 
  * 
  * OBJ ::= IDENT := ( OBJFIELDS )
@@ -97,7 +98,6 @@ import languages.operators.*;
  * 
  * RETURN ::= return IDENT ;
  * RETURN ::= return BOEXP ;
- * ->
  * RETURN ::= return ;
  * 
  * FUNCALL ::= IDENT ( ELEMENTS )
@@ -165,6 +165,7 @@ public class Parser {
 	private final static String FIELDASSIGN = "=>";
 	private final static String FIELDOBJASSIGN = ":=>";
 	
+	private final static String DEREFERENCING = "&";
 	private final static String OPEN_ARR = "[";
 	private final static String CLOSE_ARR = "]";
 	private final static String ARR_POP = "<-";
@@ -741,6 +742,13 @@ public class Parser {
 				String id = this.currTok.get().get();
 				this.currTok = this.scanner.getNextToken();
 				return new SizeExp(id);
+			}
+		}else if(this.currTok.get().equals(Parser.DEREFERENCING)){
+			this.currTok = this.scanner.getNextToken();
+			if(this.currTok.isPresent() && this.currTok.get().isIdentifier()){
+				String id = this.currTok.get().get();
+				this.currTok = this.scanner.getNextToken();
+				return new DerefExp(id);
 			}
 		}
 		return null;

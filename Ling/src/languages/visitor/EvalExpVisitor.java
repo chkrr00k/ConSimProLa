@@ -19,6 +19,7 @@ import languages.operators.AndExp;
 import languages.operators.ArrayAssignExp;
 import languages.operators.AssignExp;
 import languages.operators.Block;
+import languages.operators.DerefExp;
 import languages.operators.DivExp;
 import languages.operators.EqExp;
 import languages.operators.Field;
@@ -55,7 +56,7 @@ import languages.operators.SizeExp;
 import languages.operators.UnaryExp;
 import languages.operators.WhileExp;
 
-public class EvalExpVisitor extends ExpVisitor {
+public class EvalExpVisitor extends ExpVisitor implements Cloneable{
 	private Object value;
 	private Environment env;
 	private boolean stop;
@@ -70,8 +71,11 @@ public class EvalExpVisitor extends ExpVisitor {
 		this(0d, new Environment());
 	}
 
-	public EvalExpVisitor(Environment env) throws CloneNotSupportedException {
-		this(0d, env.clone());
+	private EvalExpVisitor(EvalExpVisitor v) throws CloneNotSupportedException {
+		this(0d, v.env.clone());
+	}
+	public EvalExpVisitor clone() throws CloneNotSupportedException{
+		return new EvalExpVisitor(this);
 	}
 
 	public double getResult() {
@@ -454,6 +458,15 @@ public class EvalExpVisitor extends ExpVisitor {
 	}
 
 	@Override
+	public void visit(DerefExp e) {
+		if(this.env.has(e.getId())){
+			this.value = this.env.get(e.getId());
+		}else{
+			throw new RuntimeException(e.getId() + "was not defined");
+		}
+	}
+
+	@Override
 	public void visit(Field e) {
 		if(this.stop){
 			return;
@@ -554,7 +567,7 @@ public class EvalExpVisitor extends ExpVisitor {
 	@Override
 	public void visit(LambdaExp e) {
 		try{
-			EvalExpVisitor v = new EvalExpVisitor(this.env);
+			EvalExpVisitor v = this.clone();
 			this.value = new languages.environment.Function(v, e.getB(), e.getArguments());
 		}catch(CloneNotSupportedException e1){
 		}
@@ -581,7 +594,11 @@ public class EvalExpVisitor extends ExpVisitor {
 			}
 			args.add((Variable) this.value);
 		});
-		this.value = f.apply(args);
+		try{
+			this.value = f.apply(args);
+		}catch(CloneNotSupportedException e1){
+			this.value = 0d;
+		}
 	}
 
 }

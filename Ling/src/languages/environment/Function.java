@@ -27,14 +27,15 @@ public class Function extends Variable {
 		this(f.visitor, f.b, new LinkedList<String>(f.args));
 	}
 
-	public Object apply(List<Variable> args){
+	public Object apply(List<Variable> args) throws CloneNotSupportedException{
 		args = args.stream().map(e -> e.clone()).collect(Collectors.toList());
 		this.combine(this.args, args).forEach((k, v) -> {
 			v.setName(k);
 			this.visitor.getEnvironment().add(k, v);
 		});
-		this.visitor.visit(this.b);
-		return this.visitor.getValue();
+		EvalExpVisitor v = this.visitor.clone();
+		v.visit(this.b);
+		return v.getValue();
 	}
 	private final <K, V> Map<K, V> combine(List<K> keys, List<V> values) {
 	    Iterator<K> keyIter = keys.iterator();

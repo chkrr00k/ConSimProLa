@@ -45,6 +45,8 @@ public abstract class ExpVisitor {
 
 	public abstract void visit(ArrayAssignExp e);
 
+	public abstract void visit(DerefExp e);
+
 	public abstract void visit(Field e);
 
 	public abstract void visit(PopExp e);

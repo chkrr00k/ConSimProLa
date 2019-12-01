@@ -39,9 +39,6 @@ public class Main {
 				+ " }"
 				+ " return input;"
 				+ "}"
-				+ "fun copyArray(input){"
-				+ " return input;"
-				+ "}"
 				+ "fun copy(input){"
 				+ " return input;"
 				+ "}"
@@ -116,10 +113,10 @@ public class Main {
 				+ "pt = 4;"
 				+ "p = $array($pt);"
 				+ "a1 = $insertAt($a1, 4, 2);"
-				+ "a2 = $copyArray($a1);"
+				+ "a2 = $copy($a1);"
 				+ "2 -> a2;"
 				+ "cc := (=>3, f => 4);"
-				+ "cc2 = $copy($cc);"
+				+ "cc2 = $copy(&cc);"
 //				+ "oa := (i :=> [1,2,3]);" //FIXME
 //				+ "ao := [:=>(=>3), (=>2)]" //FIXME
 				+ "";
