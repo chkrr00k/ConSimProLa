@@ -16,6 +16,8 @@ import languages.operators.*;
  * INSTRUCTION ::= LINE
  * INSTRUCTION ::= IF
  * INSTRUCTION ::= WHILE
+ * INSTRUCTION ::= FUNCDELC
+ * INSTRUCTION ::= RETURN
  * 
  * BLOCK ::= { INSTRUCTION+ }
  *  
@@ -67,6 +69,7 @@ import languages.operators.*;
  * FACTOR ::= $ ARRAY [ EXP ]
  * FACTOR ::= size IDENT //ident is an array
  * 
+ * 
  * OBJ ::= IDENT := ( OBJFIELDS )
  * 
  * OBJFIELDS ::= OBJFIELDDECL
@@ -87,12 +90,19 @@ import languages.operators.*;
  * 
  * ELEMENTS ::= ELEMENT, ELEMENTS
  * ELEMENTS ::= ELEMENT
- * ->
- * INSTRUCTION ::= FUNCDELC
+ * 
  * FUNCDECL ::= fun IDENT LAMBDA
- * LMABDA ::= (ELEMENTS) BLOCK
- * RETURN ::= return IDENT
- * INSTRUCTION ::= RETURN ;
+ * 
+ * LAMBDA ::= (ELEMENTS) BLOCK
+ * 
+ * RETURN ::= return IDENT ;
+ * RETURN ::= return BOEXP ;
+ * ->
+ * RETURN ::= return ;
+ * 
+ * FUNCALL ::= IDENT ( ELEMENTS )
+ * FUNCALL ::= IDENT ( )
+ * 
  */
 /* 
  * 
@@ -113,10 +123,6 @@ import languages.operators.*;
  * 
  * for <ident> in <array> <block>
  * 
- * fun <name>(<p1>, <p2>) <block>
- * fun a(e) {
- * 	$e + 1;
- * }
  * a(2);
  * 
  * arr := array(s);
@@ -704,6 +710,23 @@ public class Parser {
 				}else{
 					this.error(Parser.CLOSE_ARR);
 				}
+			}else if(t.isPresent() && t.get().equals(Parser.OPEN_PAR)){
+				this.currTok = this.scanner.getNextToken(); // it's the "("
+				FunctionCall fc = new FunctionCall(id);
+				this.currTok = this.scanner.getNextToken();
+				boolean done = false;
+				while(this.currTok.isPresent() && !done){
+					if(this.currTok.get().equals(Parser.SEQ)){
+						this.currTok = this.scanner.getNextToken();
+						continue;
+					}else if(this.currTok.get().equals(Parser.CLOSE_PAR)){
+						this.currTok = this.scanner.getNextToken();
+						done = true;
+					}else{
+						fc.add(this.parseBoExp());
+					}
+				}
+				return fc;
 			}else{
 				this.currTok = this.scanner.getNextToken();
 				return new RValExp(id);

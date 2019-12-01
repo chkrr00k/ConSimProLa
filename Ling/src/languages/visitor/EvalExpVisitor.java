@@ -2,6 +2,7 @@ package languages.visitor;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -21,6 +22,7 @@ import languages.operators.Block;
 import languages.operators.DivExp;
 import languages.operators.EqExp;
 import languages.operators.Field;
+import languages.operators.FunctionCall;
 import languages.operators.FunctionExp;
 import languages.operators.GtExp;
 import languages.operators.GteExp;
@@ -75,6 +77,8 @@ public class EvalExpVisitor extends ExpVisitor {
 	public double getResult() {
 		if(this.value instanceof String && this.env.has((String) this.value)){
 			return this.env.getValue((String) this.value);
+		}else if(this.value instanceof Variable){
+			return Double.NaN;
 		}else{
 			return (double) this.value;
 		}
@@ -98,6 +102,9 @@ public class EvalExpVisitor extends ExpVisitor {
 		double arg1;
 		e.getTarget().accept(this);
 		arg1 = this.getResult();
+		if(Double.isNaN(arg1)){
+			throw new IllegalArgumentException(arg1 + " is not an value");
+		}
 		this.value = f.apply(arg1);
 	}
 	private Variable resolve(String name){
@@ -237,7 +244,11 @@ public class EvalExpVisitor extends ExpVisitor {
 			}else if(id.contains(".")){
 				((Valueable) this.resolve(id)).setValue((Double) this.value);
 			}else{
-				this.env.add(id, (double) this.value);
+				if(this.value instanceof Variable){
+					this.env.add(id, (Variable) this.value);
+				}else{
+					this.env.add(id, (double) this.value);
+				}
 			}
 		}else if(e.getLeft() instanceof LValArrayExp){
 			Variable v = (Variable) this.value;
@@ -543,6 +554,21 @@ public class EvalExpVisitor extends ExpVisitor {
 			this.value = this.env.get(e.getId());
 		}
 		this.stop = true;
+	}
+
+	@Override
+	public void visit(FunctionCall e) {
+		languages.environment.Function f = (languages.environment.Function) this.env.get(e.getId());
+		List<Variable> args = new LinkedList<Variable>();
+		e.getArgs().forEach(el -> {
+			el.accept(this);
+			if(!(this.value instanceof Variable)){
+				this.value = new Value((Double)this.value);
+			}
+			args.add((Variable) this.value);
+		});
+		System.out.println(args);
+		this.value = f.apply(args);
 	}
 
 }

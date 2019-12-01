@@ -5,6 +5,7 @@ import java.util.Arrays;
 import languages.Parser;
 import languages.environment.Function;
 import languages.environment.Value;
+import languages.environment.Valueable;
 import languages.operators.Program;
 import languages.visitor.EvalExpVisitor;
 import languages.visitor.ExpVisitor;
@@ -21,7 +22,7 @@ public class Main {
 				+ " while size result < $length {"
 				+ "  0 -> result;"
 				+ " }"
-				+ " return 4;"
+				+ " return result;"
 				+ "}"
 				+ ""
 				+ "test = 2;"
@@ -92,6 +93,11 @@ public class Main {
 				+ " tmp <- o3;"
 				+ " $tmp -> res;"
 				+ "}"
+				+ "pt = 4;"
+				+ "p = $array($pt);"
+				+ ""
+//				+ "oa := (i :=> [1,2,3]);" //FIXME
+//				+ "ao := [:=>(=>3), (=>2)]" //FIXME
 				+ "";
 		
 		Program r;
@@ -110,6 +116,7 @@ public class Main {
 			r.accept(v);
 
 			System.out.println("result:\t\t" + v.getResult());
+			System.out.println("result (Obj):\t" + ((EvalExpVisitor) v).getValue());
 			System.out.println(((EvalExpVisitor) v).getEnvironment());
 			System.out.println(p.isEmpty()? "Correct" : "Incorrect");
 		}catch(Exception e1){
