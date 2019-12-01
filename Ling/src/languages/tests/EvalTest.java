@@ -97,7 +97,7 @@ public class EvalTest {
 				+ "  res := [];"
 				+ "  return res;"
 				+ " }else{"
-				+ "  res = $rec($in - 1);"
+				+ "  res = $array($in - 1);"
 				+ "  0 -> res;"
 				+ "  return res;"
 				+ " }"
