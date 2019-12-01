@@ -526,7 +526,8 @@ public class EvalExpVisitor extends ExpVisitor implements Cloneable{
 			a.remove(0);
 			v.setName(e.getVariable());
 			this.env.add(e.getVariable(), v);
-			this.value = ((Valueable) v).getValue();
+//			this.value = ((Valueable) v).getValue();
+			this.value = v;
 		}else{
 			throw new RuntimeException("Not defined: " + e.getArray());
 		}

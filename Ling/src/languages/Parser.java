@@ -94,7 +94,7 @@ import languages.operators.*;
  * 
  * FUNCDECL ::= fun IDENT LAMBDA
  * 
- * LAMBDA ::= (ELEMENTS) BLOCK
+ * LAMBDA ::= ( ELEMENTS ) BLOCK
  * 
  * RETURN ::= return IDENT ;
  * RETURN ::= return BOEXP ;
@@ -103,12 +103,20 @@ import languages.operators.*;
  * FUNCALL ::= IDENT ( ELEMENTS )
  * FUNCALL ::= IDENT ( )
  * 
+ * ->
+ * FACTOR ::= STREAM
+ * 
+ * STREAM ::= stream IDENT STREAMOPS STREAMEND
+ * STREAMOPS ::= STREAMOP STREAMOPS
+ * STREAMOPS ::= STREAMOP
+ * 
+ * STREAMOP ::= map LAMBDA
+ * STREAMOP ::= filter LAMBDA
+ * STREAMEND ::= collect
+ * STREAMEND ::= reduce LAMBDA
  */
 /* 
- * 
- * b := $a // obj b == obj a
- * 
- * a := stream a map (e) { e + 1; } filter (e) { e > 1;} collect
+ * a = stream a map (e) { e + 1; } filter (e) { e > 1;} collect
  * stream <array> [[map|filter] (<element>) <block> collect | reduce (<a>, <b>) <block>];
  * 
  * 
@@ -123,9 +131,6 @@ import languages.operators.*;
  * 
  * for <ident> in <array> <block>
  * 
- * a(2);
- * 
- * arr := array(s);
  */
 public class Parser {
 

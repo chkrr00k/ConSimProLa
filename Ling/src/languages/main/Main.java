@@ -129,7 +129,11 @@ public class Main {
 //				+ "oa := (i :=> [1,2,3]);" //FIXME
 //				+ "ao := [(=>3), (=>2)];" //FIXME
 				+ "c = $z21[3];"
-				+ "c.f = 9;";
+				+ "c.f = 9;"
+				+ "def := [];"
+				+ "$array -> def;"
+				+ "new <- def;"
+				+ "wwwwe = $new(5);";
 
 		Program r;
 		
