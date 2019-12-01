@@ -240,6 +240,9 @@ public class EvalExpVisitor extends ExpVisitor {
 			e.getRight().accept(this);
 			if(this.env.has(id)){
 				Variable v = this.env.get(id);
+				if(this.value instanceof Complex){
+					this.env.add(id, (Variable) this.value);
+				}
 				if(v instanceof Complex){
 					((Complex) v).setValue((Double) this.value);
 				}else if(v instanceof Value){
@@ -253,6 +256,8 @@ public class EvalExpVisitor extends ExpVisitor {
 			}else{
 				if(this.value instanceof Variable){
 					((Variable) this.value).setName(id);
+					this.env.add(id, (Variable) this.value);
+				}else if(this.value instanceof Complex){
 					this.env.add(id, (Variable) this.value);
 				}else{
 					this.env.add(id, (double) this.value);
@@ -410,7 +415,7 @@ public class EvalExpVisitor extends ExpVisitor {
 			return;
 		}
 		this.helper(e, (l, r) -> {
-			return l <= r ? l : 0d;
+			return l <= r ? l == 0 ? 1 : l : 0d;
 		});
 	}
 
