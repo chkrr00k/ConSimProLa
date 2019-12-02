@@ -114,6 +114,10 @@ import languages.operators.*;
  * STREAMOP ::= filter LAMBDA
  * STREAMEND ::= collect
  * STREAMEND ::= reduce LAMBDA
+ * 
+ * INSTRUCTION ::= FOR
+ * 
+ * FOR ::= for IDENT in IDENT BLOCK
  */
 /* 
  * a = stream a map (e) { e + 1; } filter (e) { e > 1;} collect
@@ -137,9 +141,16 @@ public class Parser {
 	private Optional<Token> currTok;
 	private Scanner scanner;
 	
+	@Followed(Followed.DelimType.DELIM)
 	private final static String IF = "if";
+	@Followed(Followed.DelimType.DELIM)
 	private final static String ELSE = "else";
+	@Followed(Followed.DelimType.DELIM)
 	private final static String WHILE = "while";
+	@Followed(Followed.DelimType.DELIM)
+	private final static String FOR = "for";
+	@Followed(Followed.DelimType.DELIM)
+	private final static String IN = "in";
 	
 	private final static String POW = "^";
 	private final static String PLUS = "+";
@@ -156,8 +167,11 @@ public class Parser {
 	private final static String SEQ = ",";
 	private final static String LINE = ";";
 	
+	@Followed(Followed.DelimType.DELIM)
 	private final static String NOT = "not";
+	@Followed(Followed.DelimType.DELIM)
 	private final static String OR = "or";
+	@Followed(Followed.DelimType.DELIM)
 	private final static String AND = "and";
 	private final static String EQ = "==";
 	private final static String NEQ = "!=";
@@ -175,9 +189,12 @@ public class Parser {
 	private final static String CLOSE_ARR = "]";
 	private final static String ARR_POP = "<-";
 	private final static String ARR_PUSH = "->";
+	@Followed(Followed.DelimType.DELIM)
 	private final static String ARR_SIZE = "size";
 	
+	@Followed(Followed.DelimType.DELIM)
 	private final static String FUNC = "fun";
+	@Followed(Followed.DelimType.DELIM)
 	private final static String RETURN = "return";
 	
 	public Parser(Scanner s) throws Exception {
@@ -219,12 +236,42 @@ public class Parser {
 		}else if(this.currTok.get().equals(Parser.RETURN)){
 			this.currTok = this.scanner.getNextToken();
 			result = this.parseReturn();
+		}else if(this.currTok.get().equals(Parser.FOR)){
+			this.currTok = this.scanner.getNextToken();
+			result = this.parseFor();
 		}else{
 			result = this.parseLine();
 		}
 		
 		return result;
 	}
+	private Instruction parseFor() throws Exception {
+		if(this.currTok.isPresent()){
+			if(this.currTok.isPresent() && this.currTok.get().isIdentifier()){
+				String id = this.currTok.get().get();
+				this.currTok = this.scanner.getNextToken();
+				if(this.currTok.isPresent() && this.currTok.get().equals(Parser.IN)){
+					this.currTok = this.scanner.getNextToken();
+					if(this.currTok.isPresent() && this.currTok.get().isIdentifier()){
+						String arr = this.currTok.get().get();
+						this.currTok = this.scanner.getNextToken();
+						Block posBlock = this.parseBlock();
+						return new ForInstr(id, arr, posBlock);
+					}else{
+						this.error("<ident>");
+					}
+				}else{
+					this.error(Parser.IN);
+				}
+			}else{
+				this.error("<ident>");
+			}
+		}else{
+			this.error(Parser.FOR);
+		}
+		return null;
+	}
+
 	private Instruction parseReturn() throws Exception {
 		ReturnOp result = null;
 		if(this.currTok.isPresent() && this.currTok.get().isIdentifier()){
@@ -432,9 +479,9 @@ public class Parser {
 	}
 	private Exp parseAndExp() throws Exception{
 		Exp result = this.parseRelExp();
-		
 		while(this.currTok.isPresent()){
 			if(this.currTok.get().equals(Parser.AND)){
+				
 				this.currTok = this.scanner.getNextToken();
 				Exp nextTerm = this.parseRelExp();
 				if(nextTerm != null){
@@ -759,15 +806,19 @@ public class Parser {
 		return null;
 	}
 
-	public final static List<String> getAcceptedSeparators(){
+	public final static List<Match> getAcceptedSeparators(){
 		return Arrays.stream(Parser.class.getDeclaredFields())
 				.filter(f -> {
 					return Modifier.isStatic(f.getModifiers());
 				}).map(e -> {
 					try{
-						return "" + e.get(Parser.class);
+						if(e.isAnnotationPresent(Followed.class)){
+							return new Match(e.get(Parser.class).toString() + "", e.getAnnotation(Followed.class).value());
+						}else{
+							return new Match(e.get(Parser.class) + "");
+						}
 					}catch(Exception e1){
-						return "";
+						return null;
 					}
 				}).collect(Collectors.toList());
 	}

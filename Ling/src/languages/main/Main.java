@@ -60,7 +60,7 @@ public class Main {
 				+ " $g;"
 				+ "} else {"
 				+ " x = 4;"
-				+ " k = if ($x or 2) {"
+				+ " k = if $x or 2 {"
 				+ "  y = 2;"
 				+ "  f = if $y {"
 				+ "   $y;"
@@ -133,7 +133,11 @@ public class Main {
 				+ "def := [];"
 				+ "$array -> def;"
 				+ "new <- def;"
-				+ "wwwwe = $new(5);";
+				+ "wwwwe = $new(5);"
+				+ "k := [];"
+				+ "for i in wwwwe {"
+				+ " $i + 4 -> k;"
+				+ "}";
 
 		Program r;
 		

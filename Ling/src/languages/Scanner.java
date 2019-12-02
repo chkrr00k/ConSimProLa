@@ -17,8 +17,8 @@ public class Scanner{
 	private AScanner as;
 	private Queue<NextInfo> next;
 	
-	public Scanner(String input, List<String> delim){
-		this.as = new AScanner(input, delim);
+	public Scanner(String input, List<Match> list){
+		this.as = new AScanner(input, list);
 		this.index = 0;
 		this.nextPos = 0;
 		this.s = input;
@@ -104,7 +104,13 @@ public class Scanner{
 			this.index = index;
 			this.current = current;
 		}
-		
-		
+	}
+	
+	public static void main(String[] args) throws Exception {
+		String t = "( if $x or 2 {";
+		Scanner a = new Scanner(t, Parser.getAcceptedSeparators());
+		while(a.hasNext()){
+			System.out.println(a.getNextToken());
+		}
 	}
 }

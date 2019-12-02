@@ -23,6 +23,7 @@ import languages.operators.DerefExp;
 import languages.operators.DivExp;
 import languages.operators.EqExp;
 import languages.operators.Field;
+import languages.operators.ForInstr;
 import languages.operators.FunctionCall;
 import languages.operators.FunctionExp;
 import languages.operators.GtExp;
@@ -326,14 +327,41 @@ public class EvalExpVisitor extends ExpVisitor implements Cloneable{
 			return;
 		}
 		e.getCond().accept(this);
-		if(e.getCond() instanceof SizeExp){
-		}
 		while((double)this.value != 0d){
 			e.getPosCond().accept(this);
 			if(this.stop){
 				return;
 			}
 			e.getCond().accept(this);
+		}
+	}
+
+	@Override
+	public void visit(ForInstr e) {
+		if(this.stop){
+			return;
+		}
+		Variable old = null;
+		if(this.env.has(e.getId())){
+			old = this.env.get(e.getId());
+		}
+		if(this.env.has(e.getArr())){
+			Array current = (Array) this.env.get(e.getArr());
+			Variable tmp = null;
+			for(Variable v : current.getAll()){
+				if(this.stop){
+					return;
+				}
+				tmp = v.clone();
+				tmp.setName(e.getId());
+				this.env.add(e.getId(), tmp);
+				e.getPosBlock().accept(this);
+			}
+		}else{
+			throw new RuntimeException(e.getArr() + " was not defined");
+		}
+		if(old != null){
+			this.env.add(e.getId(), old);
 		}
 	}
 

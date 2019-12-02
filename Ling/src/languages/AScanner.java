@@ -8,6 +8,8 @@ import java.util.Queue;
 import java.util.StringTokenizer;
 import java.util.stream.Collectors;
 
+import languages.Followed.DelimType;
+
 public class AScanner {
 
 	private StringTokenizer strTok;
@@ -15,11 +17,11 @@ public class AScanner {
 	private Optional<String> subToken;
 	private Queue<String> next;
 	
-	private List<String> keywords;
+	private List<Match> keywords;
 	
 		
-	public AScanner(String inner, List<String> delims) {
-		this.keywords = delims.stream().filter(d -> {
+	public AScanner(String inner, List<Match> list) {
+		this.keywords = list.stream().filter(d -> {
 			// return d.length() > 1;
 			return true;
 		}).collect(Collectors.toList());
@@ -41,9 +43,16 @@ public class AScanner {
 			String newTok = "";
 			if(this.subToken.isPresent()){ // if we stored a non finished token	
 				Optional <Integer> mid = this.keywords.stream().filter(k -> {
-					return this.subToken.get().startsWith(k);
+					return this.subToken.get().startsWith(k.token) 
+							&& ((k.next.equals(DelimType.DELIM) ?
+									
+									this.keywords.stream().anyMatch(ik -> {
+										return !this.subToken.get().substring(this.subToken.get().indexOf(k.token)).contains(ik.token) 
+												&& this.subToken.get().indexOf(ik.token) > 0 ? this.subToken.get().substring(0, this.subToken.get().indexOf(ik.token)).contains(k.token) : false;
+									 }): true)
+							);
 				}).map(k -> {
-					return k.length();
+					return k.token.length();
 				}).max(Integer::compare);
 					if(mid.isPresent()){
 						String result = this.subToken.get().substring(0, mid.get());
@@ -56,8 +65,8 @@ public class AScanner {
 						return result;
 					}// if we are here the current token is a single and can be returned;
 					
-				mid = this.keywords.stream().map((k) ->{
-					return this.subToken.get().indexOf(k);
+				mid = this.keywords.stream().filter(e -> !e.next.equals(DelimType.DELIM)).map((k) ->{
+					return this.subToken.get().indexOf(k.token);
 				}).filter(v -> {
 					return v > 0;
 				}).min(Integer::compare); // gets the minimum index of the nearest token
@@ -76,8 +85,8 @@ public class AScanner {
 				}
 			}else{ // we ask for a new token
 				String tok = this.strTok.nextToken();
-				if(this.keywords.stream().anyMatch((e -> {
-					return tok.contains(e);
+				if(this.keywords.stream().filter(e -> !e.next.equals(DelimType.DELIM)).anyMatch((e -> {
+					return tok.contains(e.token);
 				}))){ // if there is a keyword in the token
 					this.subToken = Optional.of(tok);
 					return this.get(); // recursive call!
@@ -107,7 +116,7 @@ public class AScanner {
 	}
 	
 	public static void main(String[] args) throws Exception {
-		String t = "( z = $x - $y, 9 == 3 ) x=x+1";
+		String t = "insertAt(inp insert(" + " $index { for ;for";
 		AScanner a = new AScanner(t, Parser.getAcceptedSeparators());
 		while(a.hasNext()){
 			System.out.println(a.get() + "\t" + a.peek());

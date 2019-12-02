@@ -7,7 +7,8 @@ public abstract class ExpVisitor {
 	
 	public abstract void visit(IfExp e);
 	public abstract void visit(WhileExp e);
-	
+	public abstract void visit(ForInstr e);
+
 	public abstract void visit(Block e);
 	
 	public abstract void visit(PlusExp e);
