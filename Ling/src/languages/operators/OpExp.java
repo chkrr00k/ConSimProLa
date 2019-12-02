@@ -16,7 +16,7 @@ public abstract class OpExp extends Exp {
 		return this.right;
 	}
 
-	public String toString(){ 
+	public String toString(){
 		return "( " + this.left.toString() + " " + this.name() + " " + this.right.toString() + " )";
 	}
 }

@@ -49,6 +49,17 @@ public class Main {
 				+ " }"
 				+ " return result;"
 				+ "}"
+				+ "fun range(start, stop, step){"
+				+ " res := [];"
+				+ " i = $stop;"
+				+ " tmp = $stop;"
+				+ " while $i > $start {"
+				+ "  tmp = $tmp - $step;"
+				+ "  i = $i - 1;"
+				+ "  $tmp -> res;"
+				+ " }"
+				+ " return res;"
+				+ "}"
 				+ ""//stdlib
 				+ "test = 2;"
 				+ "if $test {"
@@ -137,7 +148,13 @@ public class Main {
 				+ "k := [];"
 				+ "for i in wwwwe {"
 				+ " $i + 4 -> k;"
-				+ "}";
+				+ "}"
+				+ ""
+				+ "dd = $range(2, 5, 1);"
+				+ "sum = stream dd reduce (a, b) { ttt = $a + $b; return ttt; };"
+				+ "dd2 = stream dd filter (a) { t = $a > 3; return t; } "
+				+ "then reduce (a, b) { ttt = $a + $b; return ttt; };"
+				+ "cccccc = 6;";
 
 		Program r;
 		

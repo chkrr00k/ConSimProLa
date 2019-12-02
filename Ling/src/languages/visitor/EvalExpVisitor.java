@@ -54,6 +54,11 @@ import languages.operators.RValExp;
 import languages.operators.ReturnOp;
 import languages.operators.SeqExp;
 import languages.operators.SizeExp;
+import languages.operators.StreamCollect;
+import languages.operators.StreamExp;
+import languages.operators.StreamFilter;
+import languages.operators.StreamMap;
+import languages.operators.StreamReduce;
 import languages.operators.UnaryExp;
 import languages.operators.WhileExp;
 
@@ -256,7 +261,7 @@ public class EvalExpVisitor extends ExpVisitor implements Cloneable{
 					((Complex) v).setValue((Double) this.value);
 				}else if(v instanceof Value){
 					((Value) v).setValue((Double) this.value);
-				}else if(v instanceof Array){
+				}else if(v instanceof Array && this.value instanceof Variable){
 					((Variable) this.value).setName(id);
 					this.env.add(id, (Variable) this.value);
 				}
@@ -637,6 +642,91 @@ public class EvalExpVisitor extends ExpVisitor implements Cloneable{
 		}catch(CloneNotSupportedException e1){
 			this.value = 0d;
 		}
+	}
+
+	@Override
+	public void visit(StreamExp e) {
+		if(this.env.has(e.getArr())){
+			this.value = ((Array) this.env.get(e.getArr())).clone();
+			e.getOp().stream().forEach(o -> o.accept(this));
+		}else{
+			throw new RuntimeException(e.getArr() + " was never defined");
+		}
+	}
+
+	@Override
+	public void visit(StreamReduce e) {
+		Array a = (Array) this.value;
+		List<Variable> args = new LinkedList<Variable>();
+		e.getL().accept(this);
+		languages.environment.Function f = (languages.environment.Function) this.value;
+		this.value = new Value(0d);
+		for(int i = 0; i < a.getAll().size(); i++){
+			args.add((Variable) this.value);
+			args.add(a.get(i));
+			try{
+				this.value = f.apply(args);
+			}catch(CloneNotSupportedException e1){
+				this.value = 0d;
+			}
+			
+			args.clear();
+		}
+	}
+
+	@Override
+	public void visit(StreamFilter e) {
+		Array a = (Array) this.value;
+		List<Variable> args = new LinkedList<Variable>();
+		e.getL().accept(this);
+		languages.environment.Function f = (languages.environment.Function) this.value;
+		for(int i = 0; i < a.getAll().size(); i++){
+			args.add(a.get(i));
+			try{
+				this.value = f.apply(args);
+			}catch(CloneNotSupportedException e1){
+				this.value = 0d;
+			}
+			if(((Valueable) this.value).getValue() == 0d){
+				a.remove(i);
+			}
+			args.clear();
+		}
+		System.out.println(a);
+		this.value = a;
+		
+	}
+
+	@Override
+	public void visit(StreamCollect e) {
+		Array a = (Array) this.value;
+		this.value = a;
+		
+	}
+
+	@Override
+	public void visit(StreamMap e) {
+		Array a = (Array) this.value;
+		List<Variable> args = new LinkedList<Variable>();
+		e.getL().accept(this);
+		languages.environment.Function f = (languages.environment.Function) this.value;
+		this.value = new Value(0d);
+		for(int i = 0; i < a.getAll().size(); i++){
+			
+			args.add((Variable) this.value);
+			args.add(a.get(i));
+			try{
+				this.value = f.apply(args);
+			}catch(CloneNotSupportedException e1){
+				this.value = 0d;
+			}
+			System.out.println(this.value);
+/*			if(((Valueable) this.value).getValue() != 0d){
+				a.remove(i);
+			}*/
+			args.clear();
+		}
+//		this.value = a;
 	}
 
 }

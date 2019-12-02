@@ -61,6 +61,12 @@ public abstract class ExpVisitor {
 
 	public abstract void visit(FunctionCall e);
 
+	public abstract void visit(StreamExp e);
+	public abstract void visit(StreamReduce e);
+
+	public abstract void visit(StreamFilter e);
+	public abstract void visit(StreamCollect e);
+	public abstract void visit(StreamMap e);
 	
 	
 }

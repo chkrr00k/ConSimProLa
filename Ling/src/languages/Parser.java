@@ -104,10 +104,10 @@ import languages.operators.*;
  * FUNCALL ::= IDENT ( )
  * 
  * ->
- * FACTOR ::= STREAM
+ * ASSIGN ::= STREAM
  * 
  * STREAM ::= stream IDENT STREAMOPS STREAMEND
- * STREAMOPS ::= STREAMOP STREAMOPS
+ * STREAMOPS ::= STREAMOP then STREAMOPS
  * STREAMOPS ::= STREAMOP
  * 
  * STREAMOP ::= map LAMBDA
@@ -116,24 +116,25 @@ import languages.operators.*;
  * STREAMEND ::= reduce LAMBDA
  * 
  * INSTRUCTION ::= FOR
+ * INSTRUCTION ::= WHEN
  * 
  * FOR ::= for IDENT in IDENT BLOCK
+ * 
+ * WHEN ::= when { CONDITIONS }
+ * CONDITIONS ::= CONDITION CONDITIONS
+ * CONDITIONS ::= CONDITION
+ * CONDITION ::= BOEXP -> BLOCK
  */
 /* 
  * a = stream a map (e) { e + 1; } filter (e) { e > 1;} collect
  * stream <array> [[map|filter] (<element>) <block> collect | reduce (<a>, <b>) <block>];
  * 
- * 
- * for el in arr {
- * 	log $el;
- * }
  * when {
  * 	<cond> -> <block>
  * 	<cond> -> <block>
  *  <cond> -> <block>
  * }
  * 
- * for <ident> in <array> <block>
  * 
  */
 public class Parser {
@@ -151,6 +152,8 @@ public class Parser {
 	private final static String FOR = "for";
 	@Followed(Followed.DelimType.DELIM)
 	private final static String IN = "in";
+	@Followed(Followed.DelimType.DELIM)
+	private final static String WHEN = "when";
 	
 	private final static String POW = "^";
 	private final static String PLUS = "+";
@@ -197,6 +200,18 @@ public class Parser {
 	@Followed(Followed.DelimType.DELIM)
 	private final static String RETURN = "return";
 	
+	@Followed(Followed.DelimType.DELIM)
+	private final static String STREAM = "stream";
+	@Followed(Followed.DelimType.DELIM)
+	private static final String THEN = "then";
+	@Followed(Followed.DelimType.DELIM)
+	private final static String MAP = "map";
+	@Followed(Followed.DelimType.DELIM)
+	private final static String FILTER = "filter";
+	@Followed(Followed.DelimType.DELIM)
+	private final static String COLLECT = "collect";
+	@Followed(Followed.DelimType.DELIM)
+	private final static String REDUCE = "reduce";
 	public Parser(Scanner s) throws Exception {
 		this.scanner = s;
 		this.currTok = this.scanner.getNextToken();
@@ -214,7 +229,10 @@ public class Parser {
 	public Program parseProgram() throws Exception{
 		Program result = new Program();
 		while(this.scanner.hasNext()){
-			result.add(this.parseInstruction());
+			Instruction i = this.parseInstruction();
+			if(i != null){
+				result.add(i);
+			}
 		}
 		return result;
 		
@@ -451,11 +469,13 @@ public class Parser {
 	}
 	private Exp parseArrPush() throws Exception{
 		Exp result = this.parseBoExp();
-		 if(this.currTok.get().equals(Parser.ARR_PUSH)){
+		 if(this.currTok.isPresent() && this.currTok.get().equals(Parser.ARR_PUSH)){
 			 this.currTok = this.scanner.getNextToken();
 			 result = new PushExp(result, this.currTok.get().get());
 			 this.currTok = this.scanner.getNextToken();
-		 }
+		 }/*else{
+				this.error(Parser.ARR_PUSH);
+			}*/
 		return result;
 	}
 	private Exp parseBoExp() throws Exception{
@@ -601,6 +621,9 @@ public class Parser {
 					}else if(this.currTok.get().equals(Parser.WHILE)){
 						this.currTok = this.scanner.getNextToken();
 						rVal = this.parseWhile();
+					}else if(this.currTok.get().equals(Parser.STREAM)){
+						this.currTok = this.scanner.getNextToken();
+						rVal = this.parseStream();
 					}else{
 						rVal = this.parseBoExp();
 					}
@@ -624,6 +647,68 @@ public class Parser {
 		return result;
 	}
 	
+	private Exp parseStream() throws Exception {
+		if(this.currTok.isPresent()){
+			String arr = this.currTok.get().get();
+			StreamExp so = new StreamExp(arr);
+			this.currTok = this.scanner.getNextToken();
+			while(this.currTok.isPresent()){
+				System.out.println("choose ->" + this.currTok);
+				if(this.currTok.isPresent() && this.currTok.get().equals(Parser.REDUCE)){
+					this.currTok = this.scanner.getNextToken();
+					System.out.println("red ->" + this.currTok);
+					if(this.currTok.isPresent()){
+						so.add(this.parseReduce());
+						return so;
+					}
+				}else if(this.currTok.isPresent() && this.currTok.get().equals(Parser.COLLECT)){
+						so.add(this.parseCollect());
+						this.currTok = this.scanner.getNextToken();
+						System.out.println("col ->" + this.currTok);
+						return so;
+				}else if(this.currTok.isPresent() && this.currTok.get().equals(Parser.MAP)){
+					this.currTok = this.scanner.getNextToken();
+					System.out.println("map ->" + this.currTok);
+					if(this.currTok.isPresent()){
+						so.add(this.parseMap());
+					}
+				}else if(this.currTok.isPresent() && this.currTok.get().equals(Parser.FILTER)){
+					this.currTok = this.scanner.getNextToken();
+					System.out.println("fil ->" + this.currTok);
+					if(this.currTok.isPresent()){
+						so.add(this.parseFilter());
+					}
+				}else{
+					this.error(Parser.REDUCE + " " + Parser.COLLECT + " " + Parser.MAP + " " + Parser.FILTER);
+				}
+				
+				if(this.currTok.isPresent() && this.currTok.get().equals(Parser.THEN)){
+					this.currTok = this.scanner.getNextToken();
+				}
+			}
+		}else{
+			this.error("<ident>");
+		}
+		return null;
+	}
+
+	private StreamOp parseMap() throws Exception {
+		LambdaExp l = this.parseLambda();
+		return new StreamMap(l);
+	}
+	private StreamOp parseFilter() throws Exception {
+		LambdaExp l = this.parseLambda();
+		return new StreamFilter(l);
+	}
+	private StreamOp parseReduce() throws Exception {
+		LambdaExp l = this.parseLambda();
+		return new StreamReduce(l);
+	}
+	private StreamOp parseCollect() throws Exception {
+		System.out.println("SUCCESS");
+		return new StreamCollect();
+	}
+
 	private ComplexAssignExp parseObj(String id) throws Exception{
 		if(this.currTok.get().equals(Parser.OPEN_PAR)){
 			ObjAssignExp resultmp = new ObjAssignExp(id);
