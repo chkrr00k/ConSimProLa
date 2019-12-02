@@ -18,6 +18,7 @@ import languages.operators.*;
  * INSTRUCTION ::= WHILE
  * INSTRUCTION ::= FUNCDELC
  * INSTRUCTION ::= RETURN
+ * INSTRUCTION ::= FOR
  * 
  * BLOCK ::= { INSTRUCTION+ }
  *  
@@ -48,7 +49,7 @@ import languages.operators.*;
  * ASSIGN ::= IDENT = WHILE //useless
  * ASSIGN ::= IDENT [ EXP ] = EXP
  * ASSIGN ::= IDENT <- IDENT // #2 is an array
- * 
+ * ASSIGN ::= STREAM
  * 
  * IF ::= if BOEXP BLOCK else BLOCK
  * WHILE ::= while BOEXP BLOCK
@@ -69,7 +70,6 @@ import languages.operators.*;
  * FACTOR ::= $ ARRAY [ EXP ]
  * FACTOR ::= size IDENT //ident is an array
  * FACTOR ::= & IDENT 
- * 
  * 
  * OBJ ::= IDENT := ( OBJFIELDS )
  * 
@@ -103,8 +103,7 @@ import languages.operators.*;
  * FUNCALL ::= IDENT ( ELEMENTS )
  * FUNCALL ::= IDENT ( )
  * 
- * ->
- * ASSIGN ::= STREAM
+ * FOR ::= for IDENT in IDENT BLOCK
  * 
  * STREAM ::= stream IDENT STREAMOPS STREAMEND
  * STREAMOPS ::= STREAMOP then STREAMOPS
@@ -115,10 +114,8 @@ import languages.operators.*;
  * STREAMEND ::= collect
  * STREAMEND ::= reduce LAMBDA
  * 
- * INSTRUCTION ::= FOR
+ * ->
  * INSTRUCTION ::= WHEN
- * 
- * FOR ::= for IDENT in IDENT BLOCK
  * 
  * WHEN ::= when { CONDITIONS }
  * CONDITIONS ::= CONDITION CONDITIONS
@@ -126,15 +123,11 @@ import languages.operators.*;
  * CONDITION ::= BOEXP -> BLOCK
  */
 /* 
- * a = stream a map (e) { e + 1; } filter (e) { e > 1;} collect
- * stream <array> [[map|filter] (<element>) <block> collect | reduce (<a>, <b>) <block>];
- * 
  * when {
  * 	<cond> -> <block>
  * 	<cond> -> <block>
  *  <cond> -> <block>
  * }
- * 
  * 
  */
 public class Parser {
@@ -212,6 +205,7 @@ public class Parser {
 	private final static String COLLECT = "collect";
 	@Followed(Followed.DelimType.DELIM)
 	private final static String REDUCE = "reduce";
+	
 	public Parser(Scanner s) throws Exception {
 		this.scanner = s;
 		this.currTok = this.scanner.getNextToken();
@@ -235,7 +229,6 @@ public class Parser {
 			}
 		}
 		return result;
-		
 	}
 	
 	private Instruction parseInstruction() throws Exception{
@@ -473,9 +466,7 @@ public class Parser {
 			 this.currTok = this.scanner.getNextToken();
 			 result = new PushExp(result, this.currTok.get().get());
 			 this.currTok = this.scanner.getNextToken();
-		 }/*else{
-				this.error(Parser.ARR_PUSH);
-			}*/
+		 }
 		return result;
 	}
 	private Exp parseBoExp() throws Exception{
@@ -494,7 +485,6 @@ public class Parser {
 				return result;
 			}
 		}
-		
 		return result;
 	}
 	private Exp parseAndExp() throws Exception{
@@ -513,7 +503,6 @@ public class Parser {
 				return result;
 			}
 		}
-		
 		return result;
 	}
 	private Exp parseRelExp() throws Exception{
