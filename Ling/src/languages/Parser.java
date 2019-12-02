@@ -653,10 +653,8 @@ public class Parser {
 			StreamExp so = new StreamExp(arr);
 			this.currTok = this.scanner.getNextToken();
 			while(this.currTok.isPresent()){
-				System.out.println("choose ->" + this.currTok);
 				if(this.currTok.isPresent() && this.currTok.get().equals(Parser.REDUCE)){
 					this.currTok = this.scanner.getNextToken();
-					System.out.println("red ->" + this.currTok);
 					if(this.currTok.isPresent()){
 						so.add(this.parseReduce());
 						return so;
@@ -664,17 +662,14 @@ public class Parser {
 				}else if(this.currTok.isPresent() && this.currTok.get().equals(Parser.COLLECT)){
 						so.add(this.parseCollect());
 						this.currTok = this.scanner.getNextToken();
-						System.out.println("col ->" + this.currTok);
 						return so;
 				}else if(this.currTok.isPresent() && this.currTok.get().equals(Parser.MAP)){
 					this.currTok = this.scanner.getNextToken();
-					System.out.println("map ->" + this.currTok);
 					if(this.currTok.isPresent()){
 						so.add(this.parseMap());
 					}
 				}else if(this.currTok.isPresent() && this.currTok.get().equals(Parser.FILTER)){
 					this.currTok = this.scanner.getNextToken();
-					System.out.println("fil ->" + this.currTok);
 					if(this.currTok.isPresent()){
 						so.add(this.parseFilter());
 					}

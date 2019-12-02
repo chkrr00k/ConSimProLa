@@ -42,7 +42,7 @@ public class ReturnOp extends Instruction {
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
 		builder.append("return ");
-		builder.append(this.id);
+		builder.append(this.ex? this.exp : this.id);
 		builder.append(";");
 		return builder.toString();
 	}

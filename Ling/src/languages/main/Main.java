@@ -151,10 +151,14 @@ public class Main {
 				+ "}"
 				+ ""
 				+ "dd = $range(2, 5, 1);"
-				+ "sum = stream dd reduce (a, b) { ttt = $a + $b; return ttt; };"
-				+ "dd2 = stream dd filter (a) { t = $a > 3; return t; } "
+				+ "sum = stream dd reduce (a, b) { return $a + $b; };"
+				+ "dd2 = stream dd filter (a) { return $a > 3; } "
 				+ "then reduce (a, b) { ttt = $a + $b; return ttt; };"
-				+ "cccccc = 6;";
+				+ "cccccc = 6;"
+				+ ""
+				+ "dd3 = stream dd filter(a) { t = $a > 3; return t; }"
+				+ "then map(e) { return ($e + 1);} then collect;"
+				+ "";
 
 		Program r;
 		

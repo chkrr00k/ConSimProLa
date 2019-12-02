@@ -20,6 +20,10 @@ public class Array extends Variable {
 	public void add(Variable value) {
 		this.elements.add(value.clone());
 	}
+	public void add(Variable value, int i) {
+		this.elements.add(i, value.clone());
+	}
+
 	public Variable get(int i){
 		return this.elements.get(i);
 	}

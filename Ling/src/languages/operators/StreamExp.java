@@ -45,7 +45,7 @@ public class StreamExp extends Exp {
 		builder.append("stream ");
 		builder.append(this.arr);
 		builder.append(" ");
-		builder.append(String.join(" ", this.op.stream().map(e -> e.toString()).collect(Collectors.toList())));
+		builder.append(String.join(" then ", this.op.stream().map(e -> e.toString()).collect(Collectors.toList())));
 		return builder.toString();
 	}
 	

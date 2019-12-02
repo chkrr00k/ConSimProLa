@@ -620,6 +620,9 @@ public class EvalExpVisitor extends ExpVisitor implements Cloneable{
 	public void visit(ReturnOp e) {
 		if(e.hasExp()){
 			e.getExp().accept(this);
+			if(this.value instanceof Double){
+				this.value = new Value((double)this.value);
+			}
 		}else{
 			this.value = this.env.get(e.getId());
 		}
@@ -692,7 +695,6 @@ public class EvalExpVisitor extends ExpVisitor implements Cloneable{
 			}
 			args.clear();
 		}
-		System.out.println(a);
 		this.value = a;
 		
 	}
@@ -706,14 +708,12 @@ public class EvalExpVisitor extends ExpVisitor implements Cloneable{
 
 	@Override
 	public void visit(StreamMap e) {
-		Array a = (Array) this.value;
+		Array a = (Array) this.value, result = new Array(a.getName());
 		List<Variable> args = new LinkedList<Variable>();
 		e.getL().accept(this);
 		languages.environment.Function f = (languages.environment.Function) this.value;
 		this.value = new Value(0d);
 		for(int i = 0; i < a.getAll().size(); i++){
-			
-			args.add((Variable) this.value);
 			args.add(a.get(i));
 			try{
 				this.value = f.apply(args);
@@ -721,12 +721,10 @@ public class EvalExpVisitor extends ExpVisitor implements Cloneable{
 				this.value = 0d;
 			}
 			System.out.println(this.value);
-/*			if(((Valueable) this.value).getValue() != 0d){
-				a.remove(i);
-			}*/
+			result.add((Variable) this.value);
 			args.clear();
 		}
-//		this.value = a;
+		this.value = result;
 	}
 
 }
