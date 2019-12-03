@@ -264,6 +264,16 @@ public class EvalTest {
 		assertTrue((((Value) e.get("el")).getValue().equals(3d)));
 	}
 	@Test
+	public void testSize2() throws Exception {
+		Environment e = this.test("expected = 3; el = size expected;");
+		assertTrue((((Value) e.get("el")).getValue().equals(1d)));
+	}
+	@Test
+	public void testSize3() throws Exception {
+		Environment e = this.test("expected := (=>2, e => 3, v => 3); el = size expected;");
+		assertTrue((((Value) e.get("el")).getValue().equals(2d)));
+	}
+	@Test
 	public void testFunction() throws Exception {
 		Environment e = this.test(""
 				+ "fun array(length) {"
@@ -419,7 +429,7 @@ public class EvalTest {
 				+ " return &v;"
 				+ "}"
 				+ "a := [5,4,3,2,1];"
-				+ "expected = $naive(&a, 5);");
+				+ "expected = $naive(&a, size a);");
 		assertEquals(5, ((Array) e.get("expected")).getAll().size());
 		assertTrue(((Value) ((Array) e.get("expected")).get(0)).getValue().equals(1d));
 		assertTrue(((Value) ((Array) e.get("expected")).get(1)).getValue().equals(2d));

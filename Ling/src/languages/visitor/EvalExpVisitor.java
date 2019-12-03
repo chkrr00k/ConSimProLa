@@ -617,8 +617,16 @@ public class EvalExpVisitor extends ExpVisitor implements Cloneable{
 			return;
 		}
 		if(this.env.has(e.getId())){
-			Array a = (Array) this.env.get(e.getId());
-			this.value = new Double(a.getAll().size());
+			if(this.env.get(e.getId()) instanceof Array){
+				Array a = (Array) this.env.get(e.getId());
+				this.value = new Double(a.getAll().size());
+			}else if(this.env.get(e.getId()) instanceof Value){
+				this.value = new Double(1);
+			}else if(this.env.get(e.getId()) instanceof Complex){
+				this.value = new Double(((Complex)this.env.get(e.getId())).getFields().size());
+			}else{
+				throw new IllegalArgumentException("I don't know what " + e.getId() + "is.");
+			}
 		}else{
 			throw new RuntimeException("Not defined: " + e.getId());
 		}
