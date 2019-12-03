@@ -158,7 +158,13 @@ public class Main {
 				+ ""
 				+ "dd3 = stream dd filter(a) { t = $a > 3; return t; }"
 				+ "then map(e) { return ($e + 1);} then collect;"
-				+ "";
+				+ "when {"
+				+ " (3) then {"
+				+ "  e = 9;"
+				+ " }"
+				+ " 0 then { e = 6;}"
+				+ "}"
+		;
 
 		Program r;
 		

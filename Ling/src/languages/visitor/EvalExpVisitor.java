@@ -60,6 +60,7 @@ import languages.operators.StreamFilter;
 import languages.operators.StreamMap;
 import languages.operators.StreamReduce;
 import languages.operators.UnaryExp;
+import languages.operators.WhenExp;
 import languages.operators.WhileExp;
 
 public class EvalExpVisitor extends ExpVisitor implements Cloneable{
@@ -324,6 +325,19 @@ public class EvalExpVisitor extends ExpVisitor implements Cloneable{
 			e.getNegCond().get().accept(this);
 		}
 //		this.value = tmpVal;
+	}
+
+	@Override
+	public void visit(WhenExp e) {
+		if(this.stop){
+			return;
+		}
+		e.getPairs().forEach(el -> {
+			el.getKey().accept(this);
+			if((double)this.value != 0d){
+				el.getValue().accept(this);
+			}
+		});
 	}
 
 	@Override
@@ -720,7 +734,6 @@ public class EvalExpVisitor extends ExpVisitor implements Cloneable{
 			}catch(CloneNotSupportedException e1){
 				this.value = 0d;
 			}
-			System.out.println(this.value);
 			result.add((Variable) this.value);
 			args.clear();
 		}

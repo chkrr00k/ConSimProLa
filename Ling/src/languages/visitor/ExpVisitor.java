@@ -6,6 +6,8 @@ public abstract class ExpVisitor {
 	public abstract double getResult();
 	
 	public abstract void visit(IfExp e);
+	public abstract void visit(WhenExp e);
+
 	public abstract void visit(WhileExp e);
 	public abstract void visit(ForInstr e);
 

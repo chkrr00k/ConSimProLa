@@ -120,13 +120,13 @@ import languages.operators.*;
  * WHEN ::= when { CONDITIONS }
  * CONDITIONS ::= CONDITION CONDITIONS
  * CONDITIONS ::= CONDITION
- * CONDITION ::= BOEXP -> BLOCK
+ * CONDITION ::= BOEXP then BLOCK
  */
 /* 
  * when {
- * 	<cond> -> <block>
- * 	<cond> -> <block>
- *  <cond> -> <block>
+ * 	<cond> then <block>
+ * 	<cond> then <block>
+ *  <cond> then <block>
  * }
  * 
  */
@@ -250,12 +250,43 @@ public class Parser {
 		}else if(this.currTok.get().equals(Parser.FOR)){
 			this.currTok = this.scanner.getNextToken();
 			result = this.parseFor();
+		}else if(this.currTok.get().equals(Parser.WHEN)){
+			this.currTok = this.scanner.getNextToken();
+			result = this.parseWhen();
 		}else{
 			result = this.parseLine();
 		}
 		
 		return result;
 	}
+	private Instruction parseWhen() throws Exception {
+		if(this.currTok.isPresent()){
+			WhenExp we = new WhenExp();
+			if(this.currTok.isPresent() && this.currTok.get().equals(Parser.OPEN_BLOCK)){
+				this.currTok = this.scanner.getNextToken();
+				while(this.currTok.isPresent()){
+					if(this.currTok.isPresent() && this.currTok.get().equals(Parser.CLOSE_BLOCK)){
+						return we;
+					}else{
+						Exp cond = this.parseArrPush();
+						if(this.currTok.isPresent() && this.currTok.get().equals(Parser.THEN)){
+							this.currTok = this.scanner.getNextToken();
+						}else{
+							this.error(Parser.THEN);
+						}
+						Block posBlock = this.parseBlock();
+						we.add(cond, posBlock);
+					}
+				}
+			}else{
+				this.error(Parser.OPEN_BLOCK);
+			}
+		}else{
+			this.error(Parser.WHEN);
+		}
+		return null;
+	}
+
 	private Instruction parseFor() throws Exception {
 		if(this.currTok.isPresent()){
 			if(this.currTok.isPresent() && this.currTok.get().isIdentifier()){
@@ -689,7 +720,6 @@ public class Parser {
 		return new StreamReduce(l);
 	}
 	private StreamOp parseCollect() throws Exception {
-		System.out.println("SUCCESS");
 		return new StreamCollect();
 	}
 
