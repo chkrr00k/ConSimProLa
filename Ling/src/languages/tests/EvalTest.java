@@ -1,6 +1,7 @@
 package languages.tests;
 import static org.junit.Assert.*;
 
+import java.util.Comparator;
 import java.util.List;
 
 import org.junit.After;
@@ -12,6 +13,7 @@ import org.junit.rules.ExpectedException;
 import languages.Parser;
 import languages.environment.Array;
 import languages.environment.Environment;
+import languages.environment.NativeFunction;
 import languages.environment.Value;
 import languages.environment.Variable;
 import languages.operators.Program;
@@ -323,4 +325,107 @@ public class EvalTest {
 				+ "expected = $array(4);");
 		assertEquals(4, ((Array) e.get("expected")).getAll().size());
 	}
+	@Test
+	public void testHigerOrder() throws Exception {
+		Environment e = this.test(
+				"fun get(in){"
+				+ " fun result(i){"
+				+ "  return $i > $in;"
+				+ " }"
+				+ " return &result;"
+				+ "}"
+				+ "comp = $get(4);"
+				+ "expected = $comp(9);");
+		assertTrue((((Value) e.get("expected")).getValue().equals(9d)));
+	}
+	@Test
+	public void testApplication() throws Exception {
+		Environment e = this.test(
+				"fun visit(client){"
+				+ " client.visited = $client.visited + 1;"
+				+ " return &client;"
+				+ "}"
+				+ "report := [];"
+				+ "client := (id => 0, visited => 0);"
+				+ "client = $visit(&client);"
+				+ "&client -> report;");
+	}
+	@Test
+	public void testNativeInterface() throws Exception {
+		Environment e = this.test(
+				"import rand;"
+				+ "import time;"
+				+ "expected = $rand();"
+				+ "timestamp = $time();");
+		assertTrue(e.get("rand") instanceof NativeFunction);
+	}
+	@Test
+	public void testIntegerCheck() throws Exception {
+		Environment e = this.test(
+				"fun isInt(input){"
+				+ " return ($input % 1) == 0;"
+				+ "}"
+				+ "expected = $isInt(1);"
+				+ "expected2 = $isInt(6.32);");
+		assertTrue((((Value) e.get("expected")).getValue().equals(1d)));
+		assertTrue((((Value) e.get("expected2")).getValue().equals(0d)));
+	}
+	@Test
+	public void testFunctions() throws Exception {
+		Environment e = this.test(
+				"import ceil;"
+				+ "import floor;"
+				+ "import abs;"
+				+ "import round;"
+				+ "expected = $ceil(12.34);"
+				+ "expected1 = $floor(12.34);"
+				+ "expected2 = $abs(-12.34);"
+				+ "expected3 = $round(12.34);");
+		assertTrue((((Value) e.get("expected")).getValue().equals(13d)));
+		assertTrue((((Value) e.get("expected1")).getValue().equals(12d)));
+		assertTrue((((Value) e.get("expected2")).getValue().equals(12.34d)));
+		assertTrue((((Value) e.get("expected3")).getValue().equals(12d)));
+	}
+	@Test
+	public void testSortArray() throws Exception {
+		Environment e = this.test(
+				""
+				+ "fun swap(input, p1, p2){"
+				+ " tmp = $input[$p1];"
+				+ " input[$p1] = $input[$p2];"
+				+ " input[$p2] = $tmp;"
+				+ " return &input;"
+				+ "}"
+				+ "fun posMax(v, n){"
+				+ " i = 0;"
+				+ " max = 0;"
+				+ " while $i < $n {"
+				+ "  if $v[$max] < $v[$i]{"
+				+ "   max = $i;"
+				+ "  }"
+				+ " i = $i + 1;"
+				+ " }"
+				+ " return $max;"
+				+ "}"
+				+ "fun naive(v, n){"
+				+ " p = 0;"
+				+ " while $n > 1 {"
+				+ "  p = $posMax(&v, $n);"
+				+ "  if $p < $n - 1 {"
+				+ "   v = $swap(&v, $p, $n - 1);"
+				+ "  }"
+				+ "  n = $n - 1;"
+				+ " }"
+				+ " return &v;"
+				+ "}"
+				+ "a := [5,4,3,2,1];"
+				+ "expected = $naive(&a, 5);");
+		assertEquals(5, ((Array) e.get("expected")).getAll().size());
+		assertTrue(((Value) ((Array) e.get("expected")).get(0)).getValue().equals(1d));
+		assertTrue(((Value) ((Array) e.get("expected")).get(1)).getValue().equals(2d));
+		assertTrue(((Value) ((Array) e.get("expected")).get(2)).getValue().equals(3d));
+		assertTrue(((Value) ((Array) e.get("expected")).get(3)).getValue().equals(4d));
+		assertTrue(((Value) ((Array) e.get("expected")).get(4)).getValue().equals(5d));
+	}
 }
+

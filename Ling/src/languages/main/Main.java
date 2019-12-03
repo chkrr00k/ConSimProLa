@@ -118,7 +118,7 @@ public class Main {
 				+ " zzz = $a1[0];"
 				+ "}"
 				+ "a1[0] = 29;"
-				+ "qqqq = z2 <- a1 + 9;"
+				+ "zzzz = z2 <- a1 + 9;"
 				+ "$z2 -> a1;"
 				+ "2*3 -> a1;"
 				+ "$o1 -> o3;"
@@ -164,6 +164,7 @@ public class Main {
 				+ " }"
 				+ " 0 then { e = 6;}"
 				+ "}"
+				+ ""
 		;
 
 		Program r;

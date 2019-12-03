@@ -19,6 +19,10 @@ import languages.operators.*;
  * INSTRUCTION ::= FUNCDELC
  * INSTRUCTION ::= RETURN
  * INSTRUCTION ::= FOR
+ * INSTRUCTION ::= WHEN
+ * INSTRUCTION ::= IMPORT
+ * 
+ * IMPORT ::= import IDENT ;
  * 
  * BLOCK ::= { INSTRUCTION+ }
  *  
@@ -114,22 +118,12 @@ import languages.operators.*;
  * STREAMEND ::= collect
  * STREAMEND ::= reduce LAMBDA
  * 
- * ->
- * INSTRUCTION ::= WHEN
- * 
  * WHEN ::= when { CONDITIONS }
  * CONDITIONS ::= CONDITION CONDITIONS
  * CONDITIONS ::= CONDITION
  * CONDITION ::= BOEXP then BLOCK
  */
-/* 
- * when {
- * 	<cond> then <block>
- * 	<cond> then <block>
- *  <cond> then <block>
- * }
- * 
- */
+
 public class Parser {
 
 	private Optional<Token> currTok;
@@ -206,13 +200,16 @@ public class Parser {
 	@Followed(Followed.DelimType.DELIM)
 	private final static String REDUCE = "reduce";
 	
+	@Followed(Followed.DelimType.DELIM)
+	private final static String IMPORT = "import";
+	
 	public Parser(Scanner s) throws Exception {
 		this.scanner = s;
 		this.currTok = this.scanner.getNextToken();
-		
 	}
 	
 	private void error(String msg) throws Exception{
+//		System.err.println("Unexpected token:\n" + this.scanner.errorMsg() + "\nWas expected: " + msg);
 		throw new Exception("Unexpected token:\n" + this.scanner.errorMsg() + "\nWas expected: " + msg);
 	}
 	
@@ -253,12 +250,29 @@ public class Parser {
 		}else if(this.currTok.get().equals(Parser.WHEN)){
 			this.currTok = this.scanner.getNextToken();
 			result = this.parseWhen();
+		}else if(this.currTok.get().equals(Parser.IMPORT)){
+			this.currTok = this.scanner.getNextToken();
+			result = this.parseImport();
 		}else{
 			result = this.parseLine();
 		}
 		
 		return result;
 	}
+	private Instruction parseImport() throws Exception {
+		IncludeOp result = null;
+		if(this.currTok.isPresent() && this.currTok.get().isIdentifier()){
+			result = new IncludeOp(this.currTok.get().get());
+			this.currTok = this.scanner.getNextToken();
+		}
+		if(!this.currTok.get().equals(Parser.LINE)){
+			this.error(Parser.LINE);
+		}else{
+			this.currTok = this.scanner.getNextToken();
+		}
+		return result;
+	}
+
 	private Instruction parseWhen() throws Exception {
 		if(this.currTok.isPresent()){
 			WhenExp we = new WhenExp();
@@ -266,6 +280,7 @@ public class Parser {
 				this.currTok = this.scanner.getNextToken();
 				while(this.currTok.isPresent()){
 					if(this.currTok.isPresent() && this.currTok.get().equals(Parser.CLOSE_BLOCK)){
+						this.currTok = this.scanner.getNextToken();
 						return we;
 					}else{
 						Exp cond = this.parseArrPush();

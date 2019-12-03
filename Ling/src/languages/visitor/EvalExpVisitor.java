@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.BiFunction;
+import java.util.function.DoubleSupplier;
 import java.util.function.Function;
 
 import javax.management.RuntimeErrorException;
@@ -12,6 +13,8 @@ import javax.management.RuntimeErrorException;
 import languages.environment.Array;
 import languages.environment.Complex;
 import languages.environment.Environment;
+import languages.environment.NativeFunction;
+import languages.environment.StandardLibrary;
 import languages.environment.Value;
 import languages.environment.Valueable;
 import languages.environment.Variable;
@@ -29,6 +32,7 @@ import languages.operators.FunctionExp;
 import languages.operators.GtExp;
 import languages.operators.GteExp;
 import languages.operators.IfExp;
+import languages.operators.IncludeOp;
 import languages.operators.LValArrayExp;
 import languages.operators.LValExp;
 import languages.operators.LambdaExp;
@@ -259,10 +263,17 @@ public class EvalExpVisitor extends ExpVisitor implements Cloneable{
 					this.env.add(id, (Variable) this.value);
 				}
 				if(v instanceof Complex){
-					((Complex) v).setValue((Double) this.value);
-				}else if(v instanceof Value){
+					if(this.value instanceof Double){
+						((Complex) v).setValue((Double) this.value);
+					}else if(this.value instanceof Complex){
+						this.env.add(id, (Variable) this.value);
+					}
+				}else if(v instanceof Value && this.value instanceof Double){
 					((Value) v).setValue((Double) this.value);
 				}else if(v instanceof Array && this.value instanceof Variable){
+					((Variable) this.value).setName(id);
+					this.env.add(id, (Variable) this.value);
+				}else if(this.value instanceof Value){
 					((Variable) this.value).setName(id);
 					this.env.add(id, (Variable) this.value);
 				}
@@ -738,6 +749,22 @@ public class EvalExpVisitor extends ExpVisitor implements Cloneable{
 			args.clear();
 		}
 		this.value = result;
+	}
+
+	@Override
+	public void visit(IncludeOp e) {
+		DoubleSupplier ds = StandardLibrary.supplier.get(e.getName());
+		if(ds != null){
+			this.env.add(e.getName(), new NativeFunction(e.getName(), ds));
+			
+		}else{
+			Function<Double, Double> fs = StandardLibrary.functions.get(e.getName());
+			if(fs != null){
+				this.env.add(e.getName(), new NativeFunction(e.getName(), fs));
+			}else{
+				throw new RuntimeException("Native function " +  e.getName() + " can't be found");
+			}
+		}
 	}
 
 }
