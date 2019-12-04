@@ -3,6 +3,7 @@ package languages.environment;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 public class Complex extends Variable {
@@ -24,6 +25,12 @@ public class Complex extends Variable {
 		this.fields.add(f);
 		return f;
 	}
+	public void setField(String string, Variable a) {
+		this.fields.removeIf(e -> e.getName().equals(string));
+		a.setName(string);
+		this.fields.add(a);
+	}
+
 	public boolean hasFields(Variable f) {
 		return this.hasFields(f.getName());
 	}
@@ -31,14 +38,15 @@ public class Complex extends Variable {
 		return this.fields.stream().anyMatch((e) -> e.getName().equals(f));
 	}
 	public Variable getField(String b) {
-		if(this.hasFields(b)){
+	//	if(this.hasFields(b)){
 			for(Variable v: this.fields){
 				if(v.getName().equals(b)){
-					return v;
+					return v.clone();
 				}
+				System.out.println("zz "+v.getName());
 			}
-		}
-		throw new IllegalStateException(b + " was not defined");
+	//	}
+		throw new IllegalStateException(b + " was not defined in " + this);
 	}
 
 	@Override

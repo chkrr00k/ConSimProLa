@@ -126,13 +126,30 @@ public class EvalExpVisitor extends ExpVisitor implements Cloneable{
 		}
 		this.value = f.apply(arg1);
 	}
+	private void resolve(String name, Variable a){
+		String[] dec = name.split("\\.");
+		Complex c = (Complex) this.env.get(dec[0]);
+		if(dec.length - 1 > 0){
+			for(String s: Arrays.copyOfRange(dec, 1, dec.length - 1)){
+				c = (Complex) c.getField(s);
+			}
+			c.setField(dec[dec.length - 1], a);
+		}else{
+			a = a.clone();
+			a.setName(dec.length == 1? name : dec[1]);
+			this.env.add(name, a);
+		}
+		
+	}
 	private Variable resolve(String name){
 		String[] dec = name.split("\\.");
 		Complex c = (Complex) this.env.get(dec[0]);
-		for(String s: Arrays.copyOfRange(dec, 1, dec.length - 1)){
-			c = (Complex) c.getField(s);
+		if(dec.length - 1 > 0){
+			for(String s: Arrays.copyOfRange(dec, 1, dec.length - 1)){
+				c = (Complex) c.getField(s);
+			}
 		}
-		return c.getField(dec[dec.length - 1]);
+		return dec.length > 1? c.getField(dec[1]): c.getField(dec[dec.length - 1]);
 	}
 	
 	@Override
@@ -208,7 +225,7 @@ public class EvalExpVisitor extends ExpVisitor implements Cloneable{
 				this.value = this.env.get(e.getName());
 			}
 		}else if(e.getName().contains(".")){
-			this.value = ((Valueable) this.resolve(e.getName())).getValue();
+			this.value = this.resolve(e.getName());
 		}else{
 			throw new RuntimeException("Invalid identifier: " + e.getName());
 		}
@@ -282,7 +299,10 @@ public class EvalExpVisitor extends ExpVisitor implements Cloneable{
 					System.err.println("Error!");
 				}
 			}else if(id.contains(".")){//FIXME
-				((Valueable) this.resolve(id)).setValue((double) this.value);
+				if(this.value instanceof Double){
+					this.value = new Value((double) this.value);
+				}
+				this.resolve(id, (Variable) this.value);
 			}else{
 				if(this.value instanceof Variable){
 					((Variable) this.value).setName(id);
@@ -533,7 +553,8 @@ public class EvalExpVisitor extends ExpVisitor implements Cloneable{
 			c.addField((Variable) this.value);
 		});
 		if(e.isTopLevel()){
-			this.env.add(e.getId(), c);
+			this.resolve(e.getId(), c);
+		//	this.env.add(e.getId(), c);
 		}
 		this.value = c;
 	}
@@ -551,7 +572,8 @@ public class EvalExpVisitor extends ExpVisitor implements Cloneable{
 			a.add(el);
 		});
 		if(e.isTopLevel()){
-			this.env.add(e.getId(), a);
+			this.resolve(e.getId(), a);
+//			this.env.add(e.getId(), a);
 		}
 		this.value = a;
 	}
@@ -572,7 +594,8 @@ public class EvalExpVisitor extends ExpVisitor implements Cloneable{
 		}
 		v.setName(e.getId());
 		if(e.isTopLevel()){
-			this.env.add(e.getId(), v);
+			this.resolve(e.getId(), v);
+		//	this.env.add(e.getId(), v);
 		}
 		this.value = v;
 		
@@ -601,7 +624,13 @@ public class EvalExpVisitor extends ExpVisitor implements Cloneable{
 //			this.value = ((Valueable) v).getValue();
 			this.value = v;
 		}else{
-			throw new RuntimeException("Not defined: " + e.getArray());
+			Array a = (Array) this.resolve(e.getArray());
+			Variable v =  a.get(0);
+			a.remove(0);
+			v.setName(e.getVariable());
+			this.env.add(e.getVariable(), v);
+			this.resolve(e.getArray(), a);
+			//throw new RuntimeException("Not defined: " + e.getArray());
 		}
 	}
 
@@ -621,7 +650,15 @@ public class EvalExpVisitor extends ExpVisitor implements Cloneable{
 			
 			
 		}else{
-			throw new RuntimeException("Not defined: " + e.getArray());
+			Array a = (Array) this.resolve(e.getArray());
+			e.getResult().accept(this);
+			if(this.value instanceof Double){
+				a.push((Double)this.value);
+			}else{
+				a.push((Variable)this.value);
+			}
+			this.resolve(e.getArray(), a);
+			//throw new RuntimeException("Not defined: " + e.getArray());
 		}
 	}
 

@@ -14,6 +14,7 @@ import languages.Parser;
 import languages.environment.Array;
 import languages.environment.Complex;
 import languages.environment.Environment;
+import languages.environment.Function;
 import languages.environment.NativeFunction;
 import languages.environment.Value;
 import languages.environment.Variable;
@@ -589,9 +590,33 @@ public class EvalTest {
 				+ "i = 2;"
 				+ "a := [{q:2}, {q:4}, 0];"
 				+ "a[$i] = $s;");
-		System.out.println(e);
-		assertTrue(e.get("c") instanceof Array);
-		assertTrue(((Array) e.get("a")).get(2) instanceof Array);
+		assertTrue(e.get("s") instanceof Function);
+		assertTrue(((Array) e.get("a")).get(2) instanceof Function);
+	}
+	@Test
+	public void testObjAssign() throws Exception {
+		Environment e = this.test(""
+				+ "o := {a:4};"
+				+ "o.a = 9;"
+				+ ""
+				+ "");
+		Complex c = (Complex) e.get("o");
+		assertEquals(9d, (double)((Value) c.getField("a")).getValue(), 0);
+	}
+	@Test
+	public void testObjArrayAssign() throws Exception {
+		Environment e = this.test(""
+				+ "o := {a:4};"
+				+ "o.a := [6];"
+				+ "v = $o.a;"
+				+ "4 -> o.a;"
+				+ "k <- o.a;"
+				+ "4 -> o.a;"
+				+ "");
+		Complex c = (Complex) e.get("o");
+		assertEquals(4d, (double)((Value) e.get("k")).getValue(), 0);
+		assertTrue(c.getField("a") instanceof Array);
+		assertEquals(2, ((Array) c.getField("a")).getAll().size());
 	}
 }
 
