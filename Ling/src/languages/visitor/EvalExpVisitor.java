@@ -28,7 +28,6 @@ import languages.operators.DerefExp;
 import languages.operators.DivExp;
 import languages.operators.EqExp;
 import languages.operators.ExpAssignExp;
-import languages.operators.Field;
 import languages.operators.ForInstr;
 import languages.operators.FunctionCall;
 import languages.operators.FunctionExp;
@@ -300,7 +299,23 @@ public class EvalExpVisitor extends ExpVisitor implements Cloneable{
 			if(this.value instanceof Value){
 				this.value = ((Value) this.value).getValue();
 			}
-			((Valueable) v).setValue((double) this.value);
+			if(this.value instanceof Double){
+				((Valueable) v).setValue((double) this.value);
+			}else if(this.value instanceof Complex || this.value instanceof Array || this.value instanceof languages.environment.Function){
+				Variable c = (Variable) this.value;
+				((LValArrayExp) e.getLeft()).getIndex().accept(this);
+				int index;
+				if(this.value instanceof Double){
+					index = ((Double) this.value).intValue();
+				}else if(this.value instanceof Value){
+					index = ((Value) this.value).getValue().intValue();
+				}else{
+					throw new IllegalArgumentException(this.value + " is not a valid index");
+				}
+				((Array) this.env.get(((LValArrayExp) e.getLeft()).getId())).replace(c, index);
+			}else{
+				throw new IllegalArgumentException("wrong type in array: " + this.value.getClass());
+			}
 		}else{
 			System.err.println("Invalid Operand (AssingExp)");
 		}
@@ -569,51 +584,6 @@ public class EvalExpVisitor extends ExpVisitor implements Cloneable{
 			this.value = this.env.get(e.getId());
 		}else{
 			throw new RuntimeException(e.getId() + "was not defined");
-		}
-	}
-
-	@Override
-	public void visit(Field e) {
-		if(this.stop){
-			return;
-		}
-/*		e.getValue().accept(this);
-		if(!e.isNested()){
-			this.env.add(e.getName(), (double) this.value);
-		}*/
-		
-		e.getValue().accept(this);
-		if(!e.isNested()){
-			Complex c = null;
-			if(e.getBase().size() == 1){
-
-				if(!this.env.has(e.getParent()) || !(this.env.get(e.getParent()) instanceof Complex)){
-					this.env.add(e.getParent(), new Complex(e.getParent()));
-				}
-				c = (Complex) this.env.get(e.getParent());
-			}else{
-				
-				List<String> bs = e.getBase();
-				Collections.reverse(bs);
-				if(this.env.has(bs.get(0))){
-					c = (Complex) this.env.get(bs.get(0));
-				}else{
-					c = new Complex(bs.get(0));
-					this.env.add(c.getName(), c);
-				}
-				for(String b : bs.subList(1, bs.size())){
-					if(c.hasFields(b)){
-						c = (Complex) c.getField(b);
-					}else{
-						c = (Complex) c.addField(new Complex(b));
-					}
-				}
-			}
-			if(e.isValue()){
-				c.setValue(new Value(e.getId(), (double)this.value));
-			}else{
-				c.addField(new Value(e.getId(), (double)this.value));
-			}
 		}
 	}
 

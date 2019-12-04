@@ -12,6 +12,7 @@ import org.junit.rules.ExpectedException;
 
 import languages.Parser;
 import languages.environment.Array;
+import languages.environment.Complex;
 import languages.environment.Environment;
 import languages.environment.NativeFunction;
 import languages.environment.Value;
@@ -551,6 +552,46 @@ public class EvalTest {
 				+ "a := [5,4,3,2,1];"
 				+ "c = $a[$i];");
 		assertTrue((((Value) e.get("c")).getValue().equals(2d)));
+	}
+	@Test
+	public void testArrayObject() throws Exception {
+		Environment e = this.test(""
+				+ "i = 1;"
+				+ "a := [{q:2}, {q:4}];"
+				+ "c = $a[$i];"
+				+ "c = $c.q;");
+		assertTrue((((Value) e.get("c")).getValue().equals(4d)));
+	}
+	@Test
+	public void testArrayObjectInserting() throws Exception {
+		Environment e = this.test(""
+				+ "i = 2;"
+				+ "c := {q : 50};"
+				+ "a := [{q:2}, {q:4}, 0];"
+				+ "a[$i] = $c;");
+		assertTrue(e.get("c") instanceof Complex);
+		assertTrue(((Array) e.get("a")).get(2) instanceof Complex);
+	}
+	@Test
+	public void testArrayArrayInserting() throws Exception {
+		Environment e = this.test(""
+				+ "i = 2;"
+				+ "c := [1,2,3];"
+				+ "a := [{q:2}, {q:4}, 0];"
+				+ "a[$i] = $c;");
+		assertTrue(e.get("c") instanceof Array);
+		assertTrue(((Array) e.get("a")).get(2) instanceof Array);
+	}
+	@Test
+	public void testArrayFunctionInserting() throws Exception {
+		Environment e = this.test(""
+				+ "fun s(){}"
+				+ "i = 2;"
+				+ "a := [{q:2}, {q:4}, 0];"
+				+ "a[$i] = $s;");
+		System.out.println(e);
+		assertTrue(e.get("c") instanceof Array);
+		assertTrue(((Array) e.get("a")).get(2) instanceof Array);
 	}
 }
 

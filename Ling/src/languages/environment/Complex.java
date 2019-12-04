@@ -5,43 +5,21 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class Complex extends Variable implements Valueable{
-	private Optional<Value> v;
+public class Complex extends Variable {
 	private List<Variable> fields;
 	
 	public Complex(String name) {
 		super(name);
 		this.fields = new LinkedList<Variable>();
-		this.v = Optional.empty();
 	}
 
 	private Complex(Complex c) {
 		this(c.getName());
 		c.fields.forEach(f -> this.fields.add(f.clone()));
-		this.v = c.v;
-	}
-
-	public boolean hasValue(){
-		return this.v.isPresent();
-	}
-	public Double getValue() {
-		return this.v.get().getValue();
 	}
 	public List<Variable> getFields() {
 		return this.fields;
 	}
-	public void setValue(Value v) {
-		this.v = Optional.of(v);
-	}
-	@Override
-	public void setValue(Double value) {
-		if(this.v.isPresent()){
-			this.v.get().setValue(value);
-		}else{
-			this.setValue(new Value("", value));
-		}
-	}
-
 	public Variable addField(Variable f) {
 		this.fields.add(f);
 		return f;

@@ -24,6 +24,11 @@ public class Array extends Variable {
 		this.elements.add(i, value.clone());
 	}
 
+	public void replace(Variable value, int index) {
+		this.elements.remove(index);
+		this.elements.add(index, value.clone());
+	}
+
 	public Variable get(int i){
 		return this.elements.get(i);
 	}

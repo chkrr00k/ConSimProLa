@@ -53,8 +53,6 @@ public abstract class ExpVisitor {
 
 	public abstract void visit(DerefExp e);
 
-	public abstract void visit(Field e);
-
 	public abstract void visit(PopExp e);
 	public abstract void visit(PushExp e);
 
