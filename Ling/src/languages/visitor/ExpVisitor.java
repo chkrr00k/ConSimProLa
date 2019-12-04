@@ -72,6 +72,8 @@ public abstract class ExpVisitor {
 	public abstract void visit(StreamMap e);
 
 	public abstract void visit(IncludeOp e);
+
+	public abstract void visit(PresenceExp e);
 	
 	
 }

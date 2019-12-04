@@ -12,10 +12,6 @@ import languages.visitor.ExpVisitor;
 
 public class Main {
 	public static void main(String[] args) {
-/*		String e = "o3 := (=> 2, a => 3, b :=> (n => 3, c :=> (=> 2, l => 9, c :=> (=> 2, l => 9)), h => 3));"
-				+ "ab = $o3.b.c.c;"
-				+ "o1 := (a :=> (=> 0, p => 2, x => 3, => 3), g => 3, e => a = 0);";*/
-		
 		String e = ""
 				+ "fun array(length) {"
 				+ " result := [];"
@@ -26,10 +22,10 @@ public class Main {
 				+ "}"
 				+ "fun insertAt(input, element, index){"
 				+ " tmp := [];"
-				+ " i = 0;"
+				+ " i := 0;"
 				+ " while $i <= $index {"
 				+ "  el <- input;"
-				+ "  i = $i + 1;"
+				+ "  i := $i + 1;"
 				+ "  $el -> tmp;"
 				+ " }"
 				+ " $element -> input;"
@@ -51,11 +47,11 @@ public class Main {
 				+ "}"
 				+ "fun range(start, stop, step){"
 				+ " res := [];"
-				+ " i = $stop;"
-				+ " tmp = $stop;"
+				+ " i := $stop;"
+				+ " tmp := $stop;"
 				+ " while $i > $start {"
 				+ "  tmp = $tmp - $step;"
-				+ "  i = $i - 1;"
+				+ "  i := $i - 1;"
 				+ "  $tmp -> res;"
 				+ " }"
 				+ " return res;"
@@ -95,7 +91,7 @@ public class Main {
 				+ "}"
 				+ "a1 := [1,2,3,4,5,6];"
 				+ "pt = 4;"
-				+ "p = $array($pt);"
+				+ "p := $array($pt);"
 				+ "a1 = $insertAt($a1, 4, 2);"
 				+ "a2 = $copy($a1);"
 				+ "2 -> a2;"
@@ -127,7 +123,10 @@ public class Main {
 				+ " }"
 				+ " 0 then { e = 6;}"
 				+ "}"
-				+ ""
+				+ "i = 9;"
+				+ "i = 10;"
+				+ "import NaN;"
+				+ "g := {p : $NaN()};"
 		;
 
 		Program r;

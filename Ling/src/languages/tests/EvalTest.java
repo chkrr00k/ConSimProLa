@@ -642,5 +642,19 @@ public class EvalTest {
 				+ "e = $zero($o);"
 				+ "");
 	}
+	@Test
+	public void testPresence() throws Exception {
+		Environment e = this.test("a = 4;"
+				+ "expected = ?a;"
+				+ "expected2 = ?b;");
+		assertTrue((((Value) e.get("expected")).getValue().equals(4d)));
+		assertTrue((((Value) e.get("expected2")).getValue().equals(0d)));
+	}
+	@Test
+	public void testPresence2() throws Exception {
+		Environment e = this.test("a := {a:5};"
+				+ "expected = ?a;");
+		assertTrue(e.get("expected") instanceof Complex);
+	}
 }
 

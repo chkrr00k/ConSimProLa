@@ -53,6 +53,7 @@ import languages.operators.OrExp;
 import languages.operators.PlusExp;
 import languages.operators.PopExp;
 import languages.operators.PowExp;
+import languages.operators.PresenceExp;
 import languages.operators.Program;
 import languages.operators.PushExp;
 import languages.operators.RValArrayExp;
@@ -864,6 +865,15 @@ public class EvalExpVisitor extends ExpVisitor implements Cloneable{
 			}else{
 				throw new RuntimeException("Native function " +  e.getName() + " can't be found");
 			}
+		}
+	}
+
+	@Override
+	public void visit(PresenceExp e) {
+		if(this.env.has(e.getId())){
+			this.value = this.env.get(e.getId());
+		}else{
+			this.value = new Value(0d);
 		}
 	}
 

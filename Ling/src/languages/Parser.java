@@ -181,7 +181,6 @@ public class Parser {
 	
 	private final static String OBJASSIGN = ":=";
 	private final static String FIELDASSIGN = ":";
-	private final static String FIELDOBJASSIGN = ":=>";
 	
 	private final static String DEREFERENCING = "&";
 	private final static String OPEN_ARR = "[";
@@ -211,6 +210,7 @@ public class Parser {
 	
 	@Followed(Followed.DelimType.DELIM)
 	private final static String IMPORT = "import";
+	private static final String PRESENCE = "?";
 	
 	public Parser(Scanner s) throws Exception {
 		this.scanner = s;
@@ -935,6 +935,13 @@ public class Parser {
 				String id = this.currTok.get().get();
 				this.currTok = this.scanner.getNextToken();
 				return new DerefExp(id);
+			}
+		}else if(this.currTok.get().equals(Parser.PRESENCE)){
+			this.currTok = this.scanner.getNextToken();
+			if(this.currTok.isPresent() && this.currTok.get().isIdentifier()){
+				String id = this.currTok.get().get();
+				this.currTok = this.scanner.getNextToken();
+				return new PresenceExp(id);
 			}
 		}
 		return null;

@@ -39,6 +39,9 @@ public class Environment implements Cloneable{
 	}
 	
 	public void add(String key, double value){
+		if(this.has(key) && this.get(key).isImmutable()){
+			throw new IllegalAccessError("You can't modify values defined immutable: " + key);
+		}
 		this.variables.put(key, new Value(key,value));
 	}
 	public Variable add(String id, Variable v) {

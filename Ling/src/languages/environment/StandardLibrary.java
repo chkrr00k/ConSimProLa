@@ -23,7 +23,25 @@ public class StandardLibrary {
 		StandardLibrary.supplier.put("E", () -> {
 			return Math.E;
 		});
+		StandardLibrary.supplier.put("NaN", () -> {
+			return Double.NaN;
+		});
+		StandardLibrary.supplier.put("INFINITY", () -> {
+			return Double.POSITIVE_INFINITY;
+		});
+		StandardLibrary.supplier.put("NEG_INFINITY", () -> {
+			return Double.NEGATIVE_INFINITY;
+		});
 		
+		StandardLibrary.functions.put("isNaN", (i) -> {
+			return Double.isNaN(i)? 0d: 1d;
+		});
+		StandardLibrary.functions.put("isInfinite", (i) -> {
+			return Double.isInfinite(i)? 0d: 1d;
+		});
+		StandardLibrary.functions.put("ceil", (i) -> {
+			return Math.ceil(i);
+		});
 		StandardLibrary.functions.put("ceil", (i) -> {
 			return Math.ceil(i);
 		});
