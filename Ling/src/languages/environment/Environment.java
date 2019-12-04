@@ -11,33 +11,46 @@ import java.util.stream.Collectors;
 import javax.swing.event.ListSelectionEvent;
 
 public class Environment implements Cloneable{
-	private Map<String, Variable> doubleVariables;
+	private Map<String, Variable> variables;
+	private String name;
 	
 
+	public Environment(String name) {
+		this(name, new HashMap<String, Variable>());
+	}
 	public Environment() {
-		this.doubleVariables = new HashMap<String, Variable>();
+		this(new HashMap<String, Variable>());
+	}
+	public Environment(Map<String, Variable> d) {
+		this("Main", d);
+	}
+	public Environment(String name, Map<String, Variable> d) {
+		this.variables = new HashMap<String, Variable>();
+		d.forEach((k, v) -> {
+			this.variables.put(k, v.clone());
+		});
+		this.name = name;
+	}
+	public String getName() {
+		return this.name;
+	}
+	public void setName(String name) {
+		this.name = name;
 	}
 	
-	public Environment(Map<String, Variable> d) {
-		this.doubleVariables = new HashMap<String, Variable>();
-		d.forEach((k, v) -> {
-			this.doubleVariables.put(k, v.clone());
-		});
-	}
-
 	public void add(String key, double value){
-		this.doubleVariables.put(key, new Value(key,value));
+		this.variables.put(key, new Value(key,value));
 	}
 	public Variable add(String id, Variable v) {
 		if(!id.equals(v.getName())){
 			throw new IllegalArgumentException(id + " " + v);
 		}
-		this.doubleVariables.put(id, v);
+		this.variables.put(id, v);
 		return v;
 	}
 
 	public double getValue(String key){
-		Variable v = this.doubleVariables.get(key);
+		Variable v = this.variables.get(key);
 		if(v instanceof Valueable){
 			return ((Valueable) v).getValue(); 
 		}else{
@@ -45,10 +58,10 @@ public class Environment implements Cloneable{
 		}
 	}
 	public Variable get(String key){
-		return this.doubleVariables.get(key);
+		return this.variables.get(key);
 	}
 	public boolean has(String key){
-		return this.doubleVariables.containsKey(key);
+		return this.variables.containsKey(key);
 	}
 
 	/* (non-Javadoc)
@@ -56,25 +69,27 @@ public class Environment implements Cloneable{
 	 */
 	@Override
 	public String toString() {
-		List<String> envKey = new LinkedList<String>(this.doubleVariables.keySet());
+		List<String> envKey = new LinkedList<String>(this.variables.keySet());
 		Collections.sort(envKey, Collator.getInstance());
 		StringBuilder builder = new StringBuilder();
-		builder.append("Environment [\n");
+		builder.append(String.format("Environment (%-10s) is \n", this.name));
+		builder.append(String.format(" | %-5s | %-10s | %s\n","Type", "Name", "Value"));
+		builder.append(String.format(" | %-5s | %-10s | %s\n","-----", "----------", "--------------------------------------->"));
 		envKey.stream().map(k -> {
-			Variable v = this.doubleVariables.get(k);
+			Variable v = this.variables.get(k);
 			if(v instanceof Value){
-				return String.format("%-5s | %-10s | %.2f\n","(Val)", k, ((Value) v).getValue());
+				return String.format(" | %-5s | %-10s | %.2f\n","(Val)", k, ((Value) v).getValue());
 			}else{
-				return String.format("%-5s | %-10s | %s\n",v instanceof Complex ? "(Com)":v instanceof Array? "(Arr)":v instanceof Function?"(Fun)":"(Unk)", k, v);
+				return String.format(" | %-5s | %-10s | %s\n",v instanceof Complex ? "(Com)":v instanceof Array? "(Arr)":v instanceof Function?"(Fun)":"(Unk)", k, v);
 			}
 		}).forEach(i -> builder.append(i));
-		builder.append("]");
+		
 		return builder.toString();
 	}
 	
 	@Override
 	public Environment clone() throws CloneNotSupportedException {
-		return new Environment(this.doubleVariables);
+		return new Environment(this.variables);
 	}
 
 	

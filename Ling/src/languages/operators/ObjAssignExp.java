@@ -36,6 +36,10 @@ public class ObjAssignExp extends ComplexAssignExp {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
+		if(super.isTopLevel()){
+			builder.append(super.getId());
+			builder.append(" := ");
+		}
 		builder.append("{");
 		builder.append(String.join(",", this.fields.keySet()
 				.stream().map(e -> e.toString() + ":" + this.fields.get(e).toString()).collect(Collectors.toList())));

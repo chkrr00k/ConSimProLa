@@ -322,7 +322,6 @@ public class EvalTest {
 				+ "cc := {e:4, z:6};"
 				+ "cc2 = $copy(&cc);"
 				+ "");
-		System.out.println(e);
 	}
 	@Test
 	public void testRecursion() throws Exception {

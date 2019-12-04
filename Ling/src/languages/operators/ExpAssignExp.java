@@ -29,6 +29,10 @@ public class ExpAssignExp extends ComplexAssignExp {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
+		if(super.isTopLevel()){
+			builder.append(super.getId());
+			builder.append(" := ");
+		}
 		builder.append(this.bo);
 		return builder.toString();
 	}

@@ -31,6 +31,10 @@ public class ArrayAssignExp extends ComplexAssignExp {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
+		if(super.isTopLevel()){
+			builder.append(super.getId());
+			builder.append(" := ");
+		}
 		builder.append("[");
 		if(this.elements.size() > 0){
 			builder.append(String.join(",", this.elements.stream().map(e -> e.toString()).collect(Collectors.toList())));
