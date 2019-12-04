@@ -1,43 +1,33 @@
 package languages.operators;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import languages.visitor.ExpVisitor;
 
 public class ObjAssignExp extends ComplexAssignExp {
 
-	private List<Field> fields;	
+	private Map<String,ComplexAssignExp> fields;	
 	
-	public ObjAssignExp(String id) {
-		this.fields = new LinkedList<Field>();
+	public ObjAssignExp() {
+		this.fields = new HashMap<String,ComplexAssignExp>();
 		super.id = id;
 	}
-	public void add(Field field){
-		this.fields.add(field);
-		if(field.isNested()){
-			((ObjAssignExp) field.getValue()).addParent(this.id);
-		}else{
-			field.addBase(super.id);
-		}
+	public void add(String name, ComplexAssignExp complexAssignExp){
+		this.fields.put(name, complexAssignExp);
 	}
-
-	public void addParent(String base) {
-		for(Field f : this.fields){
-			f.addBase(base);
-		}
-	}
-	public List<Field> getFields() {
-		return this.fields;
-	}
-
 	
 	@Override
 	public void accept(ExpVisitor v) {
 		v.visit(this);
 	}
 
+	public Map<String, ComplexAssignExp> getFields() {
+		return this.fields;
+	}
 	@Override
 	public String name() {
 		return ":=";
@@ -46,10 +36,10 @@ public class ObjAssignExp extends ComplexAssignExp {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append(super.id);
-		builder.append(" := (");
-		builder.append(String.join(",", this.fields.stream().map(e -> e.toString()).collect(Collectors.toList())));
-		builder.append(")");
+		builder.append("{");
+		builder.append(String.join(",", this.fields.keySet()
+				.stream().map(e -> e.toString() + ":" + this.fields.get(e).toString()).collect(Collectors.toList())));
+		builder.append("}");
 		return builder.toString();
 	}
 

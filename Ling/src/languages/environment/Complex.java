@@ -66,17 +66,9 @@ public class Complex extends Variable implements Valueable{
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append(super.getName());
-		builder.append(":=(");
-		if(this.v.isPresent()){
-			builder.append("=>");
-			builder.append(this.v.get());
-			if(this.fields.size() > 0){
-				builder.append(", ");
-			}
-		}
-		builder.append(String.join(",", this.fields.stream().map(e -> e.getName() + "=>" + e).collect(Collectors.toList())));
-		builder.append(")");
+		builder.append("{");
+		builder.append(String.join(",", this.fields.stream().map(e -> e.getName() + ":" + e).collect(Collectors.toList())));
+		builder.append("}");
 		return builder.toString();
 	}
 

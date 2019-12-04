@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.DoubleSupplier;
 import java.util.function.Function;
@@ -22,9 +23,11 @@ import languages.operators.AndExp;
 import languages.operators.ArrayAssignExp;
 import languages.operators.AssignExp;
 import languages.operators.Block;
+import languages.operators.ComplexAssignExp;
 import languages.operators.DerefExp;
 import languages.operators.DivExp;
 import languages.operators.EqExp;
+import languages.operators.ExpAssignExp;
 import languages.operators.Field;
 import languages.operators.ForInstr;
 import languages.operators.FunctionCall;
@@ -92,6 +95,8 @@ public class EvalExpVisitor extends ExpVisitor implements Cloneable{
 	public double getResult() {
 		if(this.value instanceof String && this.env.has((String) this.value)){
 			return this.env.getValue((String) this.value);
+		}else if(this.value instanceof Value){
+			return ((Value) this.value).getValue();
 		}else if(this.value instanceof Variable){
 			return Double.NaN;
 		}else{
@@ -199,7 +204,7 @@ public class EvalExpVisitor extends ExpVisitor implements Cloneable{
 		}
 		if(this.env.has(e.getName())){
 			try{
-				this.value = this.env.getValue(e.getName());
+				this.value = this.env.get(e.getName());
 			}catch(IllegalStateException ex){
 				this.value = this.env.get(e.getName());
 			}
@@ -217,11 +222,17 @@ public class EvalExpVisitor extends ExpVisitor implements Cloneable{
 		if(this.env.has(e.getId())){
 			Array a = (Array) this.env.get(e.getId());
 			e.getIndex().accept(this);
-			if(a.get(((Double) this.value).intValue()) instanceof Value){
-				this.value = ((Value) a.get(((Double) this.value).intValue())).getValue();
+			int index;
+			if(this.value instanceof Double){
+				index = ((Double) this.value).intValue();
+			}else if(this.value instanceof Value){
+				index = ((Value) this.value).getValue().intValue();
 			}else{
-				this.value = a.get(((Double) this.value).intValue());
+				throw new IllegalArgumentException(this.value + " is not a valid index");
 			}
+			
+			this.value = a.get(index).clone();
+
 		}else{
 			throw new RuntimeException("Invalid array extraction: " + e);
 		}
@@ -242,6 +253,9 @@ public class EvalExpVisitor extends ExpVisitor implements Cloneable{
 		if(this.env.has(e.getId())){
 			Array a = (Array) this.env.get(e.getId());
 			e.getIndex().accept(this);
+			if(this.value instanceof Value){
+				this.value = ((Value) this.value).getValue();
+			}
 			this.value = a.get(((Double) this.value).intValue());
 		}else{
 			throw new RuntimeException("Invalid array extraction: " + e);
@@ -257,42 +271,38 @@ public class EvalExpVisitor extends ExpVisitor implements Cloneable{
 		if(e.getLeft() instanceof LValExp){
 			String id = ((LValExp) e.getLeft()).getName();
 			e.getRight().accept(this);
+			
 			if(this.env.has(id)){
-				Variable v = this.env.get(id);
-				if(this.value instanceof Complex){
-					this.env.add(id, (Variable) this.value);
-				}
-				if(v instanceof Complex){
-					if(this.value instanceof Double){
-						((Complex) v).setValue((Double) this.value);
-					}else if(this.value instanceof Complex){
-						this.env.add(id, (Variable) this.value);
-					}
-				}else if(v instanceof Value && this.value instanceof Double){
-					((Value) v).setValue((Double) this.value);
-				}else if(v instanceof Array && this.value instanceof Variable){
+				if(this.value instanceof Double){
+				//	((Value) v).setValue((double) this.value);
+					this.env.add(id, (Variable) new Value(id, (double) this.value));
+				}else if(this.value instanceof Variable){
 					((Variable) this.value).setName(id);
 					this.env.add(id, (Variable) this.value);
-				}else if(this.value instanceof Value){
-					((Variable) this.value).setName(id);
-					this.env.add(id, (Variable) this.value);
+				}else{
+					System.err.println("Error!");
 				}
-			}else if(id.contains(".")){
-				((Valueable) this.resolve(id)).setValue((Double) this.value);
+			}else if(id.contains(".")){//FIXME
+				((Valueable) this.resolve(id)).setValue((double) this.value);
 			}else{
 				if(this.value instanceof Variable){
 					((Variable) this.value).setName(id);
 					this.env.add(id, (Variable) this.value);
-				}else if(this.value instanceof Complex){
-					this.env.add(id, (Variable) this.value);
 				}else{
+					
 					this.env.add(id, (double) this.value);
 				}
 			}
-		}else if(e.getLeft() instanceof LValArrayExp){
+		}else if(e.getLeft() instanceof LValArrayExp){//FIXME
 			Variable v = (Variable) this.value;
 			e.getRight().accept(this);
-			((Valueable) v).setValue((Double) this.value);
+			
+			if(this.value instanceof Value){
+				this.value = ((Value) this.value).getValue();
+			}
+			((Valueable) v).setValue((double) this.value);
+		}else{
+			System.err.println("Invalid Operand (AssingExp)");
 		}
 	}
 
@@ -500,11 +510,17 @@ public class EvalExpVisitor extends ExpVisitor implements Cloneable{
 		if(this.stop){
 			return;
 		}
-//		e.getFields().forEach(f -> f.accept(this));
-		
-//		this.env.add(e.getId(), new Complex(e.getId()));
-		e.getFields().forEach(f -> f.accept(this));
-		this.value = 0d;
+		Complex c = new Complex(e.getId());
+		Map<String, ComplexAssignExp> f = e.getFields();
+		f.keySet().stream().forEach(el ->{
+			f.get(el).accept(this);
+			((Variable) this.value).setName(el);
+			c.addField((Variable) this.value);
+		});
+		if(e.isTopLevel()){
+			this.env.add(e.getId(), c);
+		}
+		this.value = c;
 	}
 
 	@Override
@@ -512,11 +528,39 @@ public class EvalExpVisitor extends ExpVisitor implements Cloneable{
 		if(this.stop){
 			return;
 		}
-		Array a = (Array) this.env.add(e.getId(), new Array(e.getId()));
-		e.getElements().stream().forEach(el -> {
+		Array a = new Array(e.getId());
+		e.getElements().stream().map(el -> {
 			el.accept(this);
-			a.add(new Value((Double) this.value));
+			return (Variable) this.value;
+		}).forEach(el -> {
+			a.add(el);
 		});
+		if(e.isTopLevel()){
+			this.env.add(e.getId(), a);
+		}
+		this.value = a;
+	}
+
+	@Override
+	public void visit(ExpAssignExp e) {
+		if(this.stop){
+			return;
+		}
+		e.getBo().accept(this);
+		Variable v = null;
+		if(this.value instanceof Value){
+			v = (Value) this.value;
+		}else if(this.value instanceof Double){
+			v = new Value((double)this.value);
+		}else{
+			v = (Variable) this.value;
+		}
+		v.setName(e.getId());
+		if(e.isTopLevel()){
+			this.env.add(e.getId(), v);
+		}
+		this.value = v;
+		
 	}
 
 	@Override

@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.LinkedList;
 
 import languages.visitor.ExpVisitor;
-
+@Deprecated
 public class Field {
 
 	private List<String> base;
@@ -49,7 +49,7 @@ public class Field {
 	public void addBase(String base) {
 		this.base.add(base);
 		if(this.isNested()){
-			((ObjAssignExp) this.getValue()).addParent(base);
+		//	((ObjAssignExp) this.getValue()).addParent(base);
 		}
 		
 	}

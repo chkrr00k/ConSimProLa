@@ -43,10 +43,13 @@ public abstract class ExpVisitor {
 	public abstract void visit(LteExp e);
 	public abstract void visit(NotExp e);
 
-	public abstract void visit(ObjAssignExp e);
 	public abstract void visit(AssignExp e);
 
+	public abstract void visit(ObjAssignExp e);
+
 	public abstract void visit(ArrayAssignExp e);
+
+	public abstract void visit(ExpAssignExp e);
 
 	public abstract void visit(DerefExp e);
 

@@ -75,7 +75,7 @@ import languages.operators.*;
  * FACTOR ::= size IDENT //ident is an array
  * FACTOR ::= & IDENT 
  * 
- * OBJ ::= IDENT := ( OBJFIELDS )
+ * 
  * 
  * OBJFIELDS ::= OBJFIELDDECL
  * OBJFIELDS ::= OBJFIELDS, OBJFIELDDECL
@@ -90,8 +90,17 @@ import languages.operators.*;
  * OBJASSIGN ::= OBJ . FIELD = IF
  * ~>
  * 
+ * OBJ ::= IDENT := ( OBJFIELDS )
  * ARRAY ::= IDENT := [ ]
  * ARRAY ::= IDENT := [ ELEMENTS ]
+ * ->
+ * CREAT ::= IDENT := OBJ
+ * OBJ ::= [ ]
+ * OBJ ::= [ ELEMENTS ]
+ * OBJ ::= { INNEROBJ }
+ * OBJ ::= num
+ * INNEROBJ ::= IDENT : OBJ
+ * ->
  * 
  * ELEMENTS ::= ELEMENT, ELEMENTS
  * ELEMENTS ::= ELEMENT
@@ -171,7 +180,7 @@ public class Parser {
 	private final static String LTE = "<=";
 	
 	private final static String OBJASSIGN = ":=";
-	private final static String FIELDASSIGN = "=>";
+	private final static String FIELDASSIGN = ":";
 	private final static String FIELDOBJASSIGN = ":=>";
 	
 	private final static String DEREFERENCING = "&";
@@ -418,47 +427,6 @@ public class Parser {
 		return null;
 	}
 	
-	private Field parseField() throws Exception{
-		Field result = null;
-		while(this.currTok.isPresent()){
-			if(this.currTok.get().isIdentifier()){
-				String id = this.currTok.get().toString();
-				this.currTok = this.scanner.getNextToken();
-				if(this.currTok.isPresent() && this.currTok.get().equals(Parser.FIELDASSIGN)){
-					Exp rVal = null;
-					this.currTok = this.scanner.getNextToken();
-					if(this.currTok.get().equals(Parser.IF)){
-						this.currTok = this.scanner.getNextToken();
-						rVal = this.parseIf();
-					}else{
-						rVal = this.parseExp();
-					}
-					result = new Field(id, rVal);
-				}else if(this.currTok.isPresent() && this.currTok.get().equals(Parser.FIELDOBJASSIGN)){
-					Exp rVal = null;
-					this.currTok = this.scanner.getNextToken();
-					rVal = this.parseObj(id);
-					result = new Field(id, rVal);
-				}else{
-					this.error(Parser.FIELDASSIGN);
-				}
-			}else if(this.currTok.get().equals(Parser.FIELDASSIGN)){
-				this.currTok = this.scanner.getNextToken();
-				Exp val;
-				if(this.currTok.get().equals(Parser.IF)){
-					this.currTok = this.scanner.getNextToken();
-					val = this.parseIf();
-				}else{
-					val = this.parseExp();
-				}
-				result = new Field(val);
-			}else{
-				return result;
-			}
-		}
-		return result;
-	}
-	
 	private Exp parseSeq() throws Exception{
 		Exp result = this.parseArrPush();
 		while(this.currTok.isPresent()){
@@ -665,7 +633,10 @@ public class Parser {
 					result = new AssignExp(array ? new LValArrayExp(id, index) : new LValExp(id), rVal);
 				}else if(this.currTok.isPresent() && this.currTok.get().equals(Parser.OBJASSIGN)){
 					this.currTok = this.scanner.getNextToken();
-					return this.parseObj(id);
+					ComplexAssignExp res = this.parseObj();
+					res.setName(id);
+					res.setTopLevel();
+					return res;
 				}else if(this.currTok.isPresent() && this.currTok.get().equals(Parser.ARR_POP)){
 					this.currTok = this.scanner.getNextToken();
 					if(this.currTok.isPresent() && this.currTok.get().isIdentifier()){
@@ -737,19 +708,27 @@ public class Parser {
 	private StreamOp parseCollect() throws Exception {
 		return new StreamCollect();
 	}
-
-	private ComplexAssignExp parseObj(String id) throws Exception{
-		if(this.currTok.get().equals(Parser.OPEN_PAR)){
-			ObjAssignExp resultmp = new ObjAssignExp(id);
+// { a : 3, b : [], c : {}}
+	private ComplexAssignExp parseObj() throws Exception{
+		if(this.currTok.get().equals(Parser.OPEN_BLOCK)){
+			ObjAssignExp resultmp = new ObjAssignExp();
 			this.currTok = this.scanner.getNextToken();
 			while(this.currTok.isPresent()){
 				if(this.currTok.get().equals(Parser.SEQ)){
 					this.currTok = this.scanner.getNextToken();
 					continue;
 				}else{
-					Field field = this.parseField();
-					resultmp.add(field);
-					if(this.currTok.get().equals(Parser.CLOSE_PAR)){
+					String id = this.currTok.get().get();
+					this.currTok = this.scanner.getNextToken();
+					if(this.currTok.isPresent() && this.currTok.get().equals(Parser.FIELDASSIGN)){
+						this.currTok = this.scanner.getNextToken();
+						ComplexAssignExp inner = this.parseObj();
+						resultmp.add(id, inner);
+					}else{
+						this.error(Parser.FIELDASSIGN);
+					}
+
+					if(this.currTok.get().equals(Parser.CLOSE_BLOCK)){
 						this.currTok = this.scanner.getNextToken();
 						return resultmp;
 					}else{
@@ -760,7 +739,7 @@ public class Parser {
 			return resultmp;
 		}else if(this.currTok.get().equals(Parser.OPEN_ARR)){
 			this.currTok = this.scanner.getNextToken();
-			ArrayAssignExp resultmp = new ArrayAssignExp(id);
+			ArrayAssignExp resultmp = new ArrayAssignExp();
 			while(this.currTok.isPresent()){
 				if(this.currTok.get().equals(Parser.SEQ)){
 					this.currTok = this.scanner.getNextToken();
@@ -769,16 +748,57 @@ public class Parser {
 					this.currTok = this.scanner.getNextToken();
 					return resultmp;
 				}else{
-					Exp element = this.parseExp();
-					if(element == null){
-						this.error("<value>");
-					}
-					resultmp.add(element);
+					ComplexAssignExp inner = this.parseObj();
+					resultmp.add(inner);
 				}
 			}
+		}else{
+			Exp bo = this.parseBoExp();
+			return new ExpAssignExp(bo);
 		}
 		return null;
 	}
+
+	/*private Field parseField() throws Exception{
+		Field result = null;
+		while(this.currTok.isPresent()){
+			if(this.currTok.get().isIdentifier()){
+				String id = this.currTok.get().toString();
+				this.currTok = this.scanner.getNextToken();
+				if(this.currTok.isPresent() && this.currTok.get().equals(Parser.FIELDASSIGN)){
+					Exp rVal = null;
+					this.currTok = this.scanner.getNextToken();
+					if(this.currTok.get().equals(Parser.IF)){
+						this.currTok = this.scanner.getNextToken();
+						rVal = this.parseIf();
+					}else{
+						rVal = this.parseExp();
+					}
+					result = new Field(id, rVal);
+				}else if(this.currTok.isPresent() && this.currTok.get().equals(Parser.FIELDOBJASSIGN)){
+					Exp rVal = null;
+					this.currTok = this.scanner.getNextToken();
+					rVal = this.parseObj(id);
+					result = new Field(id, rVal);
+				}else{
+					this.error(Parser.FIELDASSIGN);
+				}
+			}else if(this.currTok.get().equals(Parser.FIELDASSIGN)){
+				this.currTok = this.scanner.getNextToken();
+				Exp val;
+				if(this.currTok.get().equals(Parser.IF)){
+					this.currTok = this.scanner.getNextToken();
+					val = this.parseIf();
+				}else{
+					val = this.parseExp();
+				}
+				result = new Field(val);
+			}else{
+				return result;
+			}
+		}
+		return result;
+	}*/
 
 	private Exp parseTerm() throws Exception {
 		Exp result = this.parsePot();

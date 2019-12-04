@@ -10,8 +10,7 @@ public class ArrayAssignExp extends ComplexAssignExp {
 
 	private List<Exp> elements;
 	
-	public ArrayAssignExp(String id) {
-		super.id = id;
+	public ArrayAssignExp() {
 		this.elements = new LinkedList<Exp>();
 	}
 
@@ -32,8 +31,7 @@ public class ArrayAssignExp extends ComplexAssignExp {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append(super.id);
-		builder.append(" := [");
+		builder.append("[");
 		if(this.elements.size() > 0){
 			builder.append(String.join(",", this.elements.stream().map(e -> e.toString()).collect(Collectors.toList())));
 		}

@@ -63,9 +63,9 @@ public class Environment implements Cloneable{
 		envKey.stream().map(k -> {
 			Variable v = this.doubleVariables.get(k);
 			if(v instanceof Value){
-				return String.format("%-10s | %.2f\n", k, ((Value) v).getValue());
+				return String.format("%-5s | %-10s | %.2f\n","(Val)", k, ((Value) v).getValue());
 			}else{
-				return String.format("%-10s | %s\n", k, v);
+				return String.format("%-5s | %-10s | %s\n",v instanceof Complex ? "(Com)":v instanceof Array? "(Arr)":v instanceof Function?"(Fun)":"(Unk)", k, v);
 			}
 		}).forEach(i -> builder.append(i));
 		builder.append("]");

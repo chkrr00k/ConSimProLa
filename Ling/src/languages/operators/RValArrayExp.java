@@ -33,7 +33,7 @@ public class RValArrayExp extends Exp {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append(this.id);
+		builder.append("$" + this.id);
 		builder.append("[");
 		builder.append(this.index);
 		builder.append("]");

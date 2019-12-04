@@ -27,6 +27,7 @@ public class EvalTest {
 	
 	EvalExpVisitor v;
 	Parser p;
+	Program r;
 	@Before
 	public void setUp() throws Exception {
 		v = new EvalExpVisitor();
@@ -37,7 +38,7 @@ public class EvalTest {
 		assertTrue(p.isEmpty());
 	}
 	private Environment test(String code) throws Exception{
-		Program r;
+		
 		p = Parser.of(code);
 		r = p.parseProgram();		
 		r.accept(v);
@@ -270,7 +271,7 @@ public class EvalTest {
 	}
 	@Test
 	public void testSize3() throws Exception {
-		Environment e = this.test("expected := (=>2, e => 3, v => 3); el = size expected;");
+		Environment e = this.test("expected := {a : 4;b:2}; el = size expected;");
 		assertTrue((((Value) e.get("el")).getValue().equals(2d)));
 	}
 	@Test
@@ -283,7 +284,8 @@ public class EvalTest {
 				+ " }"
 				+ " return result;"
 				+ "}"
-				+ "expected = $array(4);");
+				+ "expected = $array(4);"
+				);
 		assertEquals(4, ((Array) e.get("expected")).getAll().size());
 	}
 	@Test
@@ -315,7 +317,7 @@ public class EvalTest {
 				+ "fun copy(input){"
 				+ " return input;"
 				+ "}"
-				+ "cc := (=>3, f => 4);"
+				+ "cc := {e:4, z:6};"
 				+ "cc2 = $copy(&cc);"
 				+ "");
 	}
@@ -348,7 +350,7 @@ public class EvalTest {
 				+ "expected = $comp(9);");
 		assertTrue((((Value) e.get("expected")).getValue().equals(9d)));
 	}
-	@Test
+/*	@Test
 	public void testApplication() throws Exception {
 		Environment e = this.test(
 				"fun visit(client){"
@@ -359,6 +361,15 @@ public class EvalTest {
 				+ "client := (id => 0, visited => 0);"
 				+ "client = $visit(&client);"
 				+ "&client -> report;");
+	}*/
+	@Test
+	public void testObj() throws Exception {
+		Environment e = this.test(
+				"obj := {a : 3, b : [], c : [1,2,3], d :{e : 4}};"
+				+ "obj2 := 5;"
+				+ "obj3 := [1,2,3,4];"
+				+ "obj4 := {inn : [{e:4}]};"
+				+ "c = $obj4;");
 	}
 	@Test
 	public void testNativeInterface() throws Exception {
@@ -373,7 +384,8 @@ public class EvalTest {
 	public void testIntegerCheck() throws Exception {
 		Environment e = this.test(
 				"fun isInt(input){"
-				+ " return ($input % 1) == 0;"
+				+ " res = ($input % 1) == 0;"
+				+ " return res;"
 				+ "}"
 				+ "expected = $isInt(1);"
 				+ "expected2 = $isInt(6.32);");
@@ -436,6 +448,109 @@ public class EvalTest {
 		assertTrue(((Value) ((Array) e.get("expected")).get(2)).getValue().equals(3d));
 		assertTrue(((Value) ((Array) e.get("expected")).get(3)).getValue().equals(4d));
 		assertTrue(((Value) ((Array) e.get("expected")).get(4)).getValue().equals(5d));
+	}
+	@Test
+	public void testFunctionSwap() throws Exception {
+		Environment e = this.test(
+				""
+				+ "fun swap(input, p1, p2){"
+				+ " tmp = $input[$p1];"
+				+ " input[$p1] = $input[$p2];"
+				+ " input[$p2] = $tmp;"
+				+ " return &input;"
+				+ "}"
+				+ "a := [5,4,3,2,1];"
+				+ "expected = $swap(&a, 2, 4);");
+		assertEquals(5, ((Array) e.get("expected")).getAll().size());
+		assertTrue(((Value) ((Array) e.get("expected")).get(0)).getValue().equals(5d));
+		assertTrue(((Value) ((Array) e.get("expected")).get(1)).getValue().equals(4d));
+		assertTrue(((Value) ((Array) e.get("expected")).get(2)).getValue().equals(1d));
+		assertTrue(((Value) ((Array) e.get("expected")).get(3)).getValue().equals(2d));
+		assertTrue(((Value) ((Array) e.get("expected")).get(4)).getValue().equals(3d));
+	}
+	@Test
+	public void testSwap() throws Exception {
+		Environment e = this.test(
+				"p1 = 2;"
+				+ "p2 = 4;"
+				+ "e := [5,4,3,2,1];"
+				+ " tmp = $e[$p1];"
+				+ " e[$p1] = $e[$p2];"
+				+ " e[$p2] = $tmp;");
+		assertEquals(5, ((Array) e.get("e")).getAll().size());
+		assertTrue(((Value) ((Array) e.get("e")).get(0)).getValue().equals(5d));
+		assertTrue(((Value) ((Array) e.get("e")).get(1)).getValue().equals(4d));
+		assertTrue(((Value) ((Array) e.get("e")).get(2)).getValue().equals(1d));
+		assertTrue(((Value) ((Array) e.get("e")).get(3)).getValue().equals(2d));
+		assertTrue(((Value) ((Array) e.get("e")).get(4)).getValue().equals(3d));
+	}
+	@Test
+	public void testIndirectSwap() throws Exception {
+		Environment e = this.test(
+				"p1 := 2;"
+				+ "p2 := 4;"
+				+ "e := [5,4,3,2,1];"
+				+ " tmp1 = $e[$p1];"
+				+ " tmp2 = $e[$p2];"
+				+ " e[$p1] = $tmp2;"
+				+ " e[$p2] = $tmp1;");
+		assertEquals(5, ((Array) e.get("e")).getAll().size());
+		assertTrue(((Value) ((Array) e.get("e")).get(0)).getValue().equals(5d));
+		assertTrue(((Value) ((Array) e.get("e")).get(1)).getValue().equals(4d));
+		assertTrue(((Value) ((Array) e.get("e")).get(2)).getValue().equals(1d));
+		assertTrue(((Value) ((Array) e.get("e")).get(3)).getValue().equals(2d));
+		assertTrue(((Value) ((Array) e.get("e")).get(4)).getValue().equals(3d));
+	}
+	@Test
+	public void testVarToArray() throws Exception {
+		Environment e = this.test(
+				"tmp = 2;"
+				+ "p2 = 4;"
+				+ "e := [5,4,3,2,1];"
+				+ " e[$p2] = $tmp;");
+		assertEquals(5, ((Array) e.get("e")).getAll().size());
+		assertTrue(((Value) ((Array) e.get("e")).get(0)).getValue().equals(5d));
+		assertTrue(((Value) ((Array) e.get("e")).get(1)).getValue().equals(4d));
+		assertTrue(((Value) ((Array) e.get("e")).get(2)).getValue().equals(3d));
+		assertTrue(((Value) ((Array) e.get("e")).get(3)).getValue().equals(2d));
+		assertTrue(((Value) ((Array) e.get("e")).get(4)).getValue().equals(2d));
+	}
+	@Test
+	public void testArrayToArray() throws Exception {
+		Environment e = this.test(
+				"p1 = 2;"
+				+ "p2 = 4;"
+				+ "e := [5,4,3,2,1];"
+				+ " e[$p1] = $e[$p2];"
+				);
+		assertEquals(5, ((Array) e.get("e")).getAll().size());
+		assertTrue(((Value) ((Array) e.get("e")).get(0)).getValue().equals(5d));
+		assertTrue(((Value) ((Array) e.get("e")).get(1)).getValue().equals(4d));
+		assertTrue(((Value) ((Array) e.get("e")).get(2)).getValue().equals(1d));
+		assertTrue(((Value) ((Array) e.get("e")).get(3)).getValue().equals(2d));
+		assertTrue(((Value) ((Array) e.get("e")).get(4)).getValue().equals(1d));
+	}
+	@Test
+	public void testLValArrayExp() throws Exception {
+		Environment e = this.test(
+				"c = 11;"
+				+ "i = 0;"
+				+ "a := [5,4,3,2,1];"
+				+ "a[$i] = $c;");
+		assertEquals(5, ((Array) e.get("a")).getAll().size());
+		assertTrue(((Value) ((Array) e.get("a")).get(0)).getValue().equals(11d));
+		assertTrue(((Value) ((Array) e.get("a")).get(1)).getValue().equals(4d));
+		assertTrue(((Value) ((Array) e.get("a")).get(2)).getValue().equals(3d));
+		assertTrue(((Value) ((Array) e.get("a")).get(3)).getValue().equals(2d));
+		assertTrue(((Value) ((Array) e.get("a")).get(4)).getValue().equals(1d));
+	}
+	@Test
+	public void testRValArrayExp() throws Exception {
+		Environment e = this.test(""
+				+ "i = 3;"
+				+ "a := [5,4,3,2,1];"
+				+ "c = $a[$i];");
+		assertTrue((((Value) e.get("c")).getValue().equals(2d)));
 	}
 }
 

@@ -46,8 +46,7 @@ public class Array extends Variable {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append(super.getName());
-		builder.append(":= [");
+		builder.append("[");
 		builder.append(String.join(",", this.elements.stream().map(e -> e.toString()).collect(Collectors.toList())));
 		builder.append("]");
 		return builder.toString();
