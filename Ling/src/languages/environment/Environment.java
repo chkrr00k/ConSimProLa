@@ -76,5 +76,6 @@ public class Environment implements Cloneable{
 	public Environment clone() throws CloneNotSupportedException {
 		return new Environment(this.doubleVariables);
 	}
+
 	
 }

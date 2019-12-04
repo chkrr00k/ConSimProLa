@@ -618,5 +618,29 @@ public class EvalTest {
 		assertTrue(c.getField("a") instanceof Array);
 		assertEquals(2, ((Array) c.getField("a")).getAll().size());
 	}
+	@Test
+	public void testForObj() throws Exception {
+		Environment e = this.test(""
+				+ "o := {a:4, c:9};"
+				+ "z := [];"
+				+ "for el in o{"
+				+ " $el -> z;"
+				+ "}"
+				+ "");
+		assertEquals(2, ((Array) e.get("z")).getAll().size());
+	}
+	@Test
+	public void testZero() throws Exception {
+		Environment e = this.test(""
+				+ "fun zero(obj){"
+				+ " for el in obj{"
+				+ "  el = 0;"
+				+ " }"
+				+ " return obj;"
+				+ "}"
+				+ "o := {a:4, c:9};"
+				+ "e = $zero($o);"
+				+ "");
+	}
 }
 

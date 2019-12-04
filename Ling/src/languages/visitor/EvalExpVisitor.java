@@ -128,16 +128,20 @@ public class EvalExpVisitor extends ExpVisitor implements Cloneable{
 	}
 	private void resolve(String name, Variable a){
 		String[] dec = name.split("\\.");
-		Complex c = (Complex) this.env.get(dec[0]);
-		if(dec.length - 1 > 0){
-			for(String s: Arrays.copyOfRange(dec, 1, dec.length - 1)){
-				c = (Complex) c.getField(s);
-			}
-			c.setField(dec[dec.length - 1], a);
+		if(this.env.get(dec[0]) instanceof Value || this.env.get(dec[0]) instanceof Array){
+			this.env.add(dec[0], a);
 		}else{
-			a = a.clone();
-			a.setName(dec.length == 1? name : dec[1]);
-			this.env.add(name, a);
+			Complex c = (Complex) this.env.get(dec[0]);
+			if(dec.length - 1 > 0){
+				for(String s: Arrays.copyOfRange(dec, 1, dec.length - 1)){
+					c = (Complex) c.getField(s);
+				}
+				c.setField(dec[dec.length - 1], a);
+			}else{
+				a = a.clone();
+				a.setName(dec.length == 1? name : dec[1]);
+				this.env.add(name, a);
+			}
 		}
 		
 	}
@@ -375,6 +379,9 @@ public class EvalExpVisitor extends ExpVisitor implements Cloneable{
 		}
 		e.getCond().accept(this);
 //		Object tmpVal = this.value;
+		if(this.value instanceof Value){
+			this.value = ((Value) this.value).getValue();
+		}
 		if((double)this.value != 0d){
 			e.getPosCond().accept(this);
 		}else if(e.getNegCond().isPresent()){
@@ -390,6 +397,9 @@ public class EvalExpVisitor extends ExpVisitor implements Cloneable{
 		}
 		e.getPairs().forEach(el -> {
 			el.getKey().accept(this);
+			if(this.value instanceof Value){
+				this.value = ((Value) this.value).getValue();
+			}
 			if((double)this.value != 0d){
 				el.getValue().accept(this);
 			}
@@ -402,12 +412,18 @@ public class EvalExpVisitor extends ExpVisitor implements Cloneable{
 			return;
 		}
 		e.getCond().accept(this);
+		if(this.value instanceof Value){
+			this.value = ((Value) this.value).getValue();
+		}
 		while((double)this.value != 0d){
 			e.getPosCond().accept(this);
 			if(this.stop){
 				return;
 			}
 			e.getCond().accept(this);
+			if(this.value instanceof Value){
+				this.value = ((Value) this.value).getValue();
+			}
 		}
 	}
 
@@ -421,16 +437,41 @@ public class EvalExpVisitor extends ExpVisitor implements Cloneable{
 			old = this.env.get(e.getId());
 		}
 		if(this.env.has(e.getArr())){
-			Array current = (Array) this.env.get(e.getArr());
-			Variable tmp = null;
-			for(Variable v : current.getAll()){
+			Variable c = this.env.get(e.getArr());
+			if(c instanceof Array){
+				Array current = (Array) c;
+				Variable tmp = null;
+				for(Variable v : current.getAll()){
+					if(this.stop){
+						return;
+					}
+					tmp = v.clone();
+					tmp.setName(e.getId());
+					this.env.add(e.getId(), tmp);
+					e.getPosBlock().accept(this);
+				}
+			}else if(c instanceof Complex){
+				Complex current = (Complex) c;
+				Variable tmp = null;
+				for(Variable v : current.getFields()){
+					if(this.stop){
+						return;
+					}
+					tmp = v.clone();
+					tmp.setName(e.getId());
+					this.env.add(e.getId(), tmp);
+					e.getPosBlock().accept(this);
+				}
+			}else if(c instanceof languages.environment.Function || c instanceof Value){
+				Variable tmp = null;
 				if(this.stop){
 					return;
 				}
-				tmp = v.clone();
+				tmp = c.clone();
 				tmp.setName(e.getId());
 				this.env.add(e.getId(), tmp);
 				e.getPosBlock().accept(this);
+
 			}
 		}else{
 			throw new RuntimeException(e.getArr() + " was not defined");
