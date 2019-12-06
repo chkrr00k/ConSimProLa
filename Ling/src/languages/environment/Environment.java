@@ -38,15 +38,20 @@ public class Environment implements Cloneable{
 		this.name = name;
 	}
 	
-	public void add(String key, double value){
+	public Variable add(String key, double value){
 		if(this.has(key) && this.get(key).isImmutable()){
 			throw new IllegalAccessError("You can't assign values defined immutable: " + key);
 		}
-		this.variables.put(key, new Value(key,value));
+		Value v = null;
+		this.variables.put(key, v = new Value(key,value));
+		return v;
 	}
 	public Variable add(String id, Variable v) {
 		if(!id.equals(v.getName())){
 			throw new IllegalArgumentException(id + " " + v);
+		}
+		if(this.has(id) && this.get(id).isImmutable()){
+			throw new IllegalAccessError("You can't assign values defined immutable: " + id);
 		}
 		this.variables.put(id, v);
 		return v;

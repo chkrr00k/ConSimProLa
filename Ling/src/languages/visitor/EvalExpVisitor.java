@@ -152,13 +152,17 @@ public class EvalExpVisitor extends ExpVisitor implements Cloneable{
 	}
 	private Variable resolve(String name){
 		String[] dec = name.split("\\.");
-		Complex c = (Complex) this.env.get(dec[0]);
-		if(dec.length - 1 > 0){
-			for(String s: Arrays.copyOfRange(dec, 1, dec.length - 1)){
-				c = (Complex) c.getField(s);
+		if(name.contains(".")){
+			Complex c = (Complex) this.env.get(dec[0]);
+			if(dec.length - 1 > 0){
+				for(String s: Arrays.copyOfRange(dec, 1, dec.length - 1)){
+					c = (Complex) c.getField(s);
+				}
 			}
+			return dec.length > 1? c.getField(dec[1]): c.getField(dec[dec.length - 1]);
+		}else{
+			return this.env.get(name);
 		}
-		return dec.length > 1? c.getField(dec[1]): c.getField(dec[dec.length - 1]);
 	}
 	
 	@Override
@@ -244,8 +248,9 @@ public class EvalExpVisitor extends ExpVisitor implements Cloneable{
 		if(this.stop){
 			return;
 		}
+		Array a = null;
 		if(this.env.has(e.getId())){
-			Array a = (Array) this.env.get(e.getId());
+			a = (Array) this.env.get(e.getId());
 			e.getIndex().accept(this);
 			int index;
 			if(this.value instanceof Double){
@@ -258,6 +263,18 @@ public class EvalExpVisitor extends ExpVisitor implements Cloneable{
 			
 			this.value = a.get(index).clone();
 
+		}else if((a = (Array)this.resolve(e.getId())) != null){
+			e.getIndex().accept(this);
+			int index;
+			if(this.value instanceof Double){
+				index = ((Double) this.value).intValue();
+			}else if(this.value instanceof Value){
+				index = ((Value) this.value).getValue().intValue();
+			}else{
+				throw new IllegalArgumentException(this.value + " is not a valid index");
+			}
+			
+			this.value = a.get(index).clone();
 		}else{
 			throw new RuntimeException("Invalid array extraction: " + e);
 		}
@@ -275,8 +292,15 @@ public class EvalExpVisitor extends ExpVisitor implements Cloneable{
 		if(this.stop){
 			return;
 		}
+		Array a = null;
 		if(this.env.has(e.getId())){
-			Array a = (Array) this.env.get(e.getId());
+			a = (Array) this.env.get(e.getId());
+			e.getIndex().accept(this);
+			if(this.value instanceof Value){
+				this.value = ((Value) this.value).getValue();
+			}
+			this.value = a.get(((Double) this.value).intValue());
+		}else if((a = (Array)this.resolve(e.getId())) != null){
 			e.getIndex().accept(this);
 			if(this.value instanceof Value){
 				this.value = ((Value) this.value).getValue();
@@ -603,9 +627,25 @@ public class EvalExpVisitor extends ExpVisitor implements Cloneable{
 			((Variable) this.value).setName(el);
 			c.addField((Variable) this.value);
 		});
-		if(e.isTopLevel()){
-			this.resolve(e.getId(), c);
-		//	this.env.add(e.getId(), c);
+		if(e.isArray()){
+			Array aa = (Array) this.resolve(e.getId());
+			e.getIndex().accept(this);
+			int index;
+			if(this.value instanceof Double){
+				index = ((Double) this.value).intValue();
+			}else if(this.value instanceof Value){
+				index = ((Value) this.value).getValue().intValue();
+			}else{
+				throw new IllegalArgumentException(this.value + " is not a valid index");
+			}
+			aa.remove(index);
+			aa.add(c, index);
+			this.resolve(e.getId(), aa);
+		}else{
+			if(e.isTopLevel()){
+				this.resolve(e.getId(), c);
+			//	this.env.add(e.getId(), c);
+			}
 		}
 		this.value = c;
 	}
@@ -622,9 +662,25 @@ public class EvalExpVisitor extends ExpVisitor implements Cloneable{
 		}).forEach(el -> {
 			a.add(el);
 		});
-		if(e.isTopLevel()){
-			this.resolve(e.getId(), a);
-//			this.env.add(e.getId(), a);
+		if(e.isArray()){
+			Array aa = (Array) this.resolve(e.getId());
+			e.getIndex().accept(this);
+			int index;
+			if(this.value instanceof Double){
+				index = ((Double) this.value).intValue();
+			}else if(this.value instanceof Value){
+				index = ((Value) this.value).getValue().intValue();
+			}else{
+				throw new IllegalArgumentException(this.value + " is not a valid index");
+			}
+			aa.remove(index);
+			aa.add(a, index);
+			this.resolve(e.getId(), aa);
+		}else{
+			if(e.isTopLevel()){
+				this.resolve(e.getId(), a);
+	//			this.env.add(e.getId(), a);
+			}
 		}
 		this.value = a;
 	}
@@ -644,9 +700,25 @@ public class EvalExpVisitor extends ExpVisitor implements Cloneable{
 			v = (Variable) this.value;
 		}
 		v.setName(e.getId());
-		if(e.isTopLevel()){
-			this.resolve(e.getId(), v);
-		//	this.env.add(e.getId(), v);
+		if(e.isArray()){
+			Array a = (Array) this.resolve(e.getId());
+			e.getIndex().accept(this);
+			int index;
+			if(this.value instanceof Double){
+				index = ((Double) this.value).intValue();
+			}else if(this.value instanceof Value){
+				index = ((Value) this.value).getValue().intValue();
+			}else{
+				throw new IllegalArgumentException(this.value + " is not a valid index");
+			}
+			a.remove(index);
+			a.add(v, index);
+			this.resolve(e.getId(), a);
+		}else{
+			if(e.isTopLevel()){
+				this.resolve(e.getId(), v);
+			//	this.env.add(e.getId(), v);
+			}
 		}
 		this.value = v;
 		

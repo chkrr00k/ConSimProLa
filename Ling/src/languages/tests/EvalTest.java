@@ -295,10 +295,10 @@ public class EvalTest {
 		Environment e = this.test(""
 				+ "fun insertAt(input, element, index){"
 				+ " tmp := [];"
-				+ " i = 0;"
+				+ " i := 0;"
 				+ " while $i < $index {"
 				+ "  el <- input;"
-				+ "  i = $i + 1;"
+				+ "  i := $i + 1;"
 				+ "  $el -> tmp;"
 				+ " }"
 				+ " $element -> input;"
@@ -320,7 +320,7 @@ public class EvalTest {
 				+ " return input;"
 				+ "}"
 				+ "cc := {e:4, z:6};"
-				+ "cc2 = $copy(&cc);"
+				+ "cc2 := $copy(&cc);"
 				+ "");
 	}
 	@Test
@@ -356,7 +356,7 @@ public class EvalTest {
 	public void testApplication() throws Exception {
 		Environment e = this.test(
 				"fun visit(client){"
-				+ " client.visited = $client.visited + 1;"
+				+ " client.visited := $client.visited + 1;"
 				+ " return &client;"
 				+ "}"
 				+ "report := [];"
@@ -415,30 +415,30 @@ public class EvalTest {
 		Environment e = this.test(
 				""
 				+ "fun swap(input, p1, p2){"
-				+ " tmp = $input[$p1];"
-				+ " input[$p1] = $input[$p2];"
-				+ " input[$p2] = $tmp;"
+				+ " tmp := $input[$p1];"
+				+ " input[$p1] := $input[$p2];"
+				+ " input[$p2] := $tmp;"
 				+ " return &input;"
 				+ "}"
 				+ "fun posMax(v, n){"
-				+ " i = 0;"
-				+ " max = 0;"
+				+ " i := 0;"
+				+ " max := 0;"
 				+ " while $i < $n {"
 				+ "  if $v[$max] < $v[$i]{"
-				+ "   max = $i;"
+				+ "   max := $i;"
 				+ "  }"
-				+ " i = $i + 1;"
+				+ " i := $i + 1;"
 				+ " }"
 				+ " return $max;"
 				+ "}"
 				+ "fun naive(v, n){"
-				+ " p = 0;"
+				+ " p := 0;"
 				+ " while $n > 1 {"
-				+ "  p = $posMax(&v, $n);"
+				+ "  p := $posMax(&v, $n);"
 				+ "  if $p < $n - 1 {"
-				+ "   v = $swap(&v, $p, $n - 1);"
+				+ "   v := $swap(&v, $p, $n - 1);"
 				+ "  }"
-				+ "  n = $n - 1;"
+				+ "  n := $n - 1;"
 				+ " }"
 				+ " return &v;"
 				+ "}"
@@ -473,10 +473,10 @@ public class EvalTest {
 	@Test
 	public void testSwap() throws Exception {
 		Environment e = this.test(
-				"p1 = 2;"
-				+ "p2 = 4;"
+				"p1 := 2;"
+				+ "p2 := 4;"
 				+ "e := [5,4,3,2,1];"
-				+ " tmp = $e[$p1];"
+				+ " tmp := $e[$p1];"
 				+ " e[$p1] = $e[$p2];"
 				+ " e[$p2] = $tmp;");
 		assertEquals(5, ((Array) e.get("e")).getAll().size());
@@ -557,10 +557,10 @@ public class EvalTest {
 	@Test
 	public void testArrayObject() throws Exception {
 		Environment e = this.test(""
-				+ "i = 1;"
+				+ "i := 1;"
 				+ "a := [{q:2}, {q:4}];"
-				+ "c = $a[$i];"
-				+ "c = $c.q;");
+				+ "c := $a[$i];"
+				+ "c := $c.q;");
 		assertTrue((((Value) e.get("c")).getValue().equals(4d)));
 	}
 	@Test
@@ -597,7 +597,7 @@ public class EvalTest {
 	public void testObjAssign() throws Exception {
 		Environment e = this.test(""
 				+ "o := {a:4};"
-				+ "o.a = 9;"
+				+ "o.a := 9;"
 				+ ""
 				+ "");
 		Complex c = (Complex) e.get("o");
@@ -637,7 +637,7 @@ public class EvalTest {
 				+ " i := $stop;"
 				+ " tmp := $stop;"
 				+ " while $i > $start {"
-				+ "  tmp = $tmp - $step;"
+				+ "  tmp := $tmp - $step;"
 				+ "  i := $i - 1;"
 				+ "  $tmp -> res;"
 				+ " }"
@@ -663,7 +663,7 @@ public class EvalTest {
 				+ " i := $stop;"
 				+ " tmp := $stop;"
 				+ " while $i > $start {"
-				+ "  tmp = $tmp - $step;"
+				+ "  tmp := $tmp - $step;"
 				+ "  i := $i - 1;"
 				+ "  $tmp -> res;"
 				+ " }"
@@ -684,12 +684,12 @@ public class EvalTest {
 		Environment e = this.test(""
 				+ "fun zero(obj){"
 				+ " for el in $obj {"
-				+ "  el = 0;"
+				+ "  el := 0;"
 				+ " }"
 				+ " return obj;"
 				+ "}"
 				+ "o := {a:4, c:9};"
-				+ "e = $zero($o);"
+				+ "e := $zero($o);"
 				+ "");
 	}
 	@Test
@@ -705,6 +705,17 @@ public class EvalTest {
 		Environment e = this.test("a := {a:5};"
 				+ "expected = ?a;");
 		assertTrue(e.get("expected") instanceof Complex);
+	}
+	@Test
+	public void testObjArray() throws Exception {
+		Environment e = this.test("obj := {arr:[1,2,3]};"
+				+ "expected = $obj.arr[1];"
+				+ "obj.arr[1] := 3;"
+				+ "expected2 := $obj.arr;"
+				+ "z = $obj.arr[1];");
+		assertTrue(((Value) e.get("expected")).getValue().equals(2d));
+		assertTrue(((Value) e.get("z")).getValue().equals(3d));
+		assertTrue(((Value) ((Array) e.get("expected2")).get(1)).getValue().equals(3d));
 	}
 }
 

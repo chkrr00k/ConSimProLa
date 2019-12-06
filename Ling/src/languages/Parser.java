@@ -599,6 +599,7 @@ public class Parser {
 				}
 			}else if(this.currTok.get().isIdentifier()){
 				boolean array = false;
+				boolean strict = this.currTok.get().isStrictIdentifier();
 				String id = this.currTok.get().toString();
 				Optional<Token> t = Optional.empty();
 				Exp index = null;
@@ -615,7 +616,7 @@ public class Parser {
 				}else{
 					this.currTok = this.scanner.getNextToken();		
 				}
-				if(this.currTok.isPresent() && this.currTok.get().equals(Parser.ASSIGN)){					
+				if(strict && this.currTok.isPresent() && this.currTok.get().equals(Parser.ASSIGN)){					
 					Exp rVal = null;
 					this.currTok = this.scanner.getNextToken();
 					if(this.currTok.get().equals(Parser.IF)){
@@ -632,6 +633,9 @@ public class Parser {
 					this.currTok = this.scanner.getNextToken();
 					ComplexAssignExp res = this.parseObj();
 					res.setName(id);
+					if(array){
+						res.setIndex(index);
+					}
 					res.setTopLevel();
 					return res;
 				}else if(this.currTok.isPresent() && this.currTok.get().equals(Parser.ARR_POP)){

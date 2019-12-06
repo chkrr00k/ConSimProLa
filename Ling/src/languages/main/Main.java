@@ -128,6 +128,7 @@ public class Main {
 				+ "i = 10;"
 				+ "import NaN;"
 				+ "g := {p : $NaN()};"
+				+ "y = 0;"
 		;
 
 		Program r;
