@@ -88,6 +88,10 @@ public class EvalExpVisitor extends ExpVisitor implements Cloneable{
 	private EvalExpVisitor(EvalExpVisitor v) throws CloneNotSupportedException {
 		this(0d, v.env.clone());
 	}
+	public EvalExpVisitor(String string) {
+		this(0d, new Environment(string));
+	}
+
 	public EvalExpVisitor clone() throws CloneNotSupportedException{
 		return new EvalExpVisitor(this);
 	}
@@ -437,8 +441,10 @@ public class EvalExpVisitor extends ExpVisitor implements Cloneable{
 		if(this.env.has(e.getId())){
 			old = this.env.get(e.getId());
 		}
-		if(this.env.has(e.getArr())){
-			Variable c = this.env.get(e.getArr());
+		e.getArr().accept(this);
+		
+		if(this.value instanceof Variable){
+			Variable c = (Variable) this.value;
 			if(c instanceof Array){
 				Array current = (Array) c;
 				Variable tmp = null;
@@ -474,6 +480,9 @@ public class EvalExpVisitor extends ExpVisitor implements Cloneable{
 				e.getPosBlock().accept(this);
 
 			}
+		}else if(this.value instanceof Double){
+			this.env.add(e.getId(), (double)this.value);
+			e.getPosBlock().accept(this);
 		}else{
 			throw new RuntimeException(e.getArr() + " was not defined");
 		}

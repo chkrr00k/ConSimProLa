@@ -39,7 +39,7 @@
 * Note that the if/while assignment works only with integers and on the first scope.
 * If and while also work as instructions as expected.
 * The `when` keyword is to use with the follow syntax: `when{<condition> then {<instructions>}... <condition> then {<instructions>}}`
-* It's defined the `for` with the following syntax: `for <ident> in <complex> {<instructions>}`, where complex can be an object (cycling on first level fields), an array (cycling on elements) or a function or a value (cycling only one time on those values).  
+* It's defined the `for` with the following syntax: `for <ident> in $<complex> {<instructions>}`, where complex can be an object (cycling on first level fields), an array (cycling on elements) or a function or a value (cycling only one time on those values).  
 From inside the for loop you can modify external values even the ones you are cycling to, but it will not modify the cycle loop.
 * You can use the function declaration via `fun <name>(<params>){<instructions>}`. To terminate the function use the `return <value|variable>` keyword. If you don't specify a return value a predictable random one will be returned. Note that functions _crystallize the environment at creation_ so if **a = 9 and then you declare the function f and then change the a on the main scope, the a inside the function will still evaluates as 9**.
 * At any time you can `import <function name>` to import a function from the native standard library. Scope applies on current environment.

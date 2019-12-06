@@ -116,7 +116,7 @@ import languages.operators.*;
  * FUNCALL ::= IDENT ( ELEMENTS )
  * FUNCALL ::= IDENT ( )
  * 
- * FOR ::= for IDENT in IDENT BLOCK
+ * FOR ::= for IDENT in BOEXP BLOCK
  * 
  * STREAM ::= stream IDENT STREAMOPS STREAMEND
  * STREAMOPS ::= STREAMOP then STREAMOPS
@@ -313,18 +313,17 @@ public class Parser {
 
 	private Instruction parseFor() throws Exception {
 		if(this.currTok.isPresent()){
-			if(this.currTok.isPresent() && this.currTok.get().isIdentifier()){
+			if(this.currTok.isPresent() && this.currTok.get().isStrictIdentifier()){
 				String id = this.currTok.get().get();
 				this.currTok = this.scanner.getNextToken();
 				if(this.currTok.isPresent() && this.currTok.get().equals(Parser.IN)){
 					this.currTok = this.scanner.getNextToken();
-					if(this.currTok.isPresent() && this.currTok.get().isIdentifier()){
-						String arr = this.currTok.get().get();
-						this.currTok = this.scanner.getNextToken();
+					if(this.currTok.isPresent()){
+						Exp bo = this.parseBoExp();
 						Block posBlock = this.parseBlock();
-						return new ForInstr(id, arr, posBlock);
+						return new ForInstr(id, bo, posBlock);
 					}else{
-						this.error("<ident>");
+						this.error("<expression>");
 					}
 				}else{
 					this.error(Parser.IN);
@@ -347,6 +346,7 @@ public class Parser {
 			result = new ReturnOp(this.parseBoExp());
 		}
 		if(!this.currTok.get().equals(Parser.LINE)){
+			System.out.println(currTok);
 			this.error(Parser.LINE);
 		}else{
 			this.currTok = this.scanner.getNextToken();
@@ -621,9 +621,6 @@ public class Parser {
 					if(this.currTok.get().equals(Parser.IF)){
 						this.currTok = this.scanner.getNextToken();
 						rVal = this.parseIf();
-					}else if(this.currTok.get().equals(Parser.WHILE)){
-						this.currTok = this.scanner.getNextToken();
-						rVal = this.parseWhile();
 					}else if(this.currTok.get().equals(Parser.STREAM)){
 						this.currTok = this.scanner.getNextToken();
 						rVal = this.parseStream();
@@ -718,21 +715,23 @@ public class Parser {
 					this.currTok = this.scanner.getNextToken();
 					continue;
 				}else{
-					String id = this.currTok.get().get();
-					this.currTok = this.scanner.getNextToken();
-					if(this.currTok.isPresent() && this.currTok.get().equals(Parser.FIELDASSIGN)){
+					if(this.currTok.get().isStrictIdentifier()){
+						String id = this.currTok.get().get();
 						this.currTok = this.scanner.getNextToken();
-						ComplexAssignExp inner = this.parseObj();
-						resultmp.add(id, inner);
-					}else{
-						this.error(Parser.FIELDASSIGN);
-					}
-
-					if(this.currTok.get().equals(Parser.CLOSE_BLOCK)){
-						this.currTok = this.scanner.getNextToken();
-						return resultmp;
-					}else{
-						this.currTok = this.scanner.getNextToken();
+						if(this.currTok.isPresent() && this.currTok.get().equals(Parser.FIELDASSIGN)){
+							this.currTok = this.scanner.getNextToken();
+							ComplexAssignExp inner = this.parseObj();
+							resultmp.add(id, inner);
+						}else{
+							this.error(Parser.FIELDASSIGN);
+						}
+	
+						if(this.currTok.get().equals(Parser.CLOSE_BLOCK)){
+							this.currTok = this.scanner.getNextToken();
+							return resultmp;
+						}else{
+							this.currTok = this.scanner.getNextToken();
+						}
 					}
 				}
 			}
@@ -943,6 +942,9 @@ public class Parser {
 				this.currTok = this.scanner.getNextToken();
 				return new PresenceExp(id);
 			}
+		}else if(this.currTok.get().equals(Parser.STREAM)){
+			this.currTok = this.scanner.getNextToken();
+			return this.parseStream();
 		}
 		return null;
 	}

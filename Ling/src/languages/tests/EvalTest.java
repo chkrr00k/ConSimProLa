@@ -32,7 +32,7 @@ public class EvalTest {
 	Program r;
 	@Before
 	public void setUp() throws Exception {
-		v = new EvalExpVisitor();
+		v = new EvalExpVisitor("Test");
 	}
 
 	@After
@@ -352,7 +352,7 @@ public class EvalTest {
 				+ "expected = $comp(9);");
 		assertTrue((((Value) e.get("expected")).getValue().equals(9d)));
 	}
-/*	@Test
+	@Test
 	public void testApplication() throws Exception {
 		Environment e = this.test(
 				"fun visit(client){"
@@ -360,10 +360,10 @@ public class EvalTest {
 				+ " return &client;"
 				+ "}"
 				+ "report := [];"
-				+ "client := (id => 0, visited => 0);"
+				+ "client := {id : 0, visited : 0};"
 				+ "client = $visit(&client);"
 				+ "&client -> report;");
-	}*/
+	}
 	@Test
 	public void testObj() throws Exception {
 		Environment e = this.test(
@@ -623,17 +623,67 @@ public class EvalTest {
 		Environment e = this.test(""
 				+ "o := {a:4, c:9};"
 				+ "z := [];"
-				+ "for el in o{"
+				+ "for el in $o{"
 				+ " $el -> z;"
 				+ "}"
 				+ "");
 		assertEquals(2, ((Array) e.get("z")).getAll().size());
 	}
 	@Test
+	public void testForFun() throws Exception {
+		Environment e = this.test(""
+				+ "fun range(start, stop, step){"
+				+ " res := [];"
+				+ " i := $stop;"
+				+ " tmp := $stop;"
+				+ " while $i > $start {"
+				+ "  tmp = $tmp - $step;"
+				+ "  i := $i - 1;"
+				+ "  $tmp -> res;"
+				+ " }"
+				+ " return res;"
+				+ "}"
+				+ "z := [];"
+				+ "for el in $range(0, 5, 1) {"
+				+ " $el -> z;"
+				+ "}"
+				+ "");
+		assertEquals(5, ((Array) e.get("z")).getAll().size());
+		assertTrue(((Value) ((Array) e.get("z")).get(0)).getValue().equals(4d));
+		assertTrue(((Value) ((Array) e.get("z")).get(1)).getValue().equals(3d));
+		assertTrue(((Value) ((Array) e.get("z")).get(2)).getValue().equals(2d));
+		assertTrue(((Value) ((Array) e.get("z")).get(3)).getValue().equals(1d));
+		assertTrue(((Value) ((Array) e.get("z")).get(4)).getValue().equals(0d));
+	}
+	@Test
+	public void testForStream() throws Exception {
+		Environment e = this.test(""
+				+ "fun range(start, stop, step){"
+				+ " res := [];"
+				+ " i := $stop;"
+				+ " tmp := $stop;"
+				+ " while $i > $start {"
+				+ "  tmp = $tmp - $step;"
+				+ "  i := $i - 1;"
+				+ "  $tmp -> res;"
+				+ " }"
+				+ " return res;"
+				+ "}"
+				+ "z := [];"
+				+ "r := $range(0, 5, 1);"
+				+ "for el in stream r filter (a) {return $a % 2 ;} then collect {"
+				+ " $el -> z;"
+				+ "}"
+				+ "");
+		assertEquals(2, ((Array) e.get("z")).getAll().size());
+		assertTrue(((Value) ((Array) e.get("z")).get(0)).getValue().equals(3d));
+		assertTrue(((Value) ((Array) e.get("z")).get(1)).getValue().equals(1d));
+	}
+	@Test
 	public void testZero() throws Exception {
 		Environment e = this.test(""
 				+ "fun zero(obj){"
-				+ " for el in obj{"
+				+ " for el in $obj {"
 				+ "  el = 0;"
 				+ " }"
 				+ " return obj;"

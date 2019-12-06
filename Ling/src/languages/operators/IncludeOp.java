@@ -31,6 +31,8 @@ public class IncludeOp extends Instruction {
 		StringBuilder builder = new StringBuilder();
 		builder.append("import ");
 		builder.append(this.name);
+		builder.append("; ");
+		
 		return builder.toString();
 	}
 	

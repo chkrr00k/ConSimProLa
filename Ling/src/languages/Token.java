@@ -51,6 +51,10 @@ public class Token {
 		return this.tk.matches("[a-zA-Z]\\S*") && !Parser.getAcceptedSeparators().stream().map(e -> e.token).anyMatch(e -> e.equals(this.tk));
 	}
 
+	public boolean isStrictIdentifier() {
+		return this.isIdentifier() && !this.tk.contains(".");
+	}
+
 
 
 }

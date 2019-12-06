@@ -81,6 +81,9 @@ public class StandardLibrary {
 		StandardLibrary.functions.put("exp", (i) -> {
 			return Math.exp(i);
 		});
+		StandardLibrary.functions.put("expDistRand", (l) -> {
+			return Math.log(1-new Random().nextDouble())/(-l);
+		});
 	}
 
 }

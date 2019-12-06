@@ -40,7 +40,7 @@ public class Environment implements Cloneable{
 	
 	public void add(String key, double value){
 		if(this.has(key) && this.get(key).isImmutable()){
-			throw new IllegalAccessError("You can't modify values defined immutable: " + key);
+			throw new IllegalAccessError("You can't assign values defined immutable: " + key);
 		}
 		this.variables.put(key, new Value(key,value));
 	}
@@ -51,7 +51,7 @@ public class Environment implements Cloneable{
 		this.variables.put(id, v);
 		return v;
 	}
-
+ @Deprecated
 	public double getValue(String key){
 		Variable v = this.variables.get(key);
 		if(v instanceof Valueable){
@@ -76,14 +76,14 @@ public class Environment implements Cloneable{
 		Collections.sort(envKey, Collator.getInstance());
 		StringBuilder builder = new StringBuilder();
 		builder.append(String.format("Environment (%-10s) is \n", this.name));
-		builder.append(String.format(" | %-5s | %-10s | %s\n","Type", "Name", "Value"));
-		builder.append(String.format(" | %-5s | %-10s | %s\n","-----", "----------", "--------------------------------------->"));
+		builder.append(String.format("%-2s | %-5s | %-10s | %s\n","K", "Type", "Name", "Value"));
+		builder.append(String.format("%-2s | %-5s | %-10s | %s\n","--", "-----", "----------", "--------------------------------------->"));
 		envKey.stream().map(k -> {
 			Variable v = this.variables.get(k);
 			if(v instanceof Value){
-				return String.format(" | %-5s | %-10s | %.2f\n","(Val)", k, ((Value) v).getValue());
+				return String.format("%-2s | %-5s | %-10s | %.2f\n",v.isImmutable() ? "St" :"Mt","(Val)", k, ((Value) v).getValue());
 			}else{
-				return String.format(" | %-5s | %-10s | %s\n",v instanceof Complex ? "(Com)":v instanceof Array? "(Arr)":v instanceof Function?"(Fun)":"(Unk)", k, v);
+				return String.format("%-2s | %-5s | %-10s | %s\n", v.isImmutable() ? "St" :"Mt",v instanceof Complex ? "(Com)":v instanceof Array? "(Arr)":v instanceof Function?"(Fun)":"(Unk)", k, v);
 			}
 		}).forEach(i -> builder.append(i));
 		
