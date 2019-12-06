@@ -21,7 +21,7 @@
 ### Variables
 
 * A variable is a word that it's not a keyword and matches `[a-zA-Z]\\S*`.
-* To assign a scalar variable you use the `=` operator: `variable = 9;`.
+* To assign a scalar variable you use the `=` operator: `variable = 9;` This operator is not intended to be used to assign complex objects or their fields, it's just a shortcut and it's suggested to not use it in favour of the universal `:=` operator.
 * To access a scalar variable you add a `$` to variable name: `$variable + 9;` .
 * To create an object you use the `:=` operator. The syntax is similar to the json one: `object := {field : 5, inner:{veryinner:5}, array:[3,4,5]};`. You can also use numeric values with that operator.
 * To access object you can use the `.` operator and the `$` operator: `$object.field;`.
