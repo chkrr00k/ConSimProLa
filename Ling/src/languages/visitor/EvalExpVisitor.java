@@ -159,7 +159,7 @@ public class EvalExpVisitor extends ExpVisitor implements Cloneable{
 					c = (Complex) c.getField(s);
 				}
 			}
-			return dec.length > 1? c.getField(dec[1]): c.getField(dec[dec.length - 1]);
+			return dec.length == 1? c.getField(dec[1]): c.getField(dec[dec.length - 1]);
 		}else{
 			return this.env.get(name);
 		}
@@ -734,7 +734,7 @@ public class EvalExpVisitor extends ExpVisitor implements Cloneable{
 	}
 
 	@Override
-	public void visit(PopExp e) {
+	public void visit(PopExp e) {//FIXME
 		if(this.stop){
 			return;
 		}
@@ -758,7 +758,7 @@ public class EvalExpVisitor extends ExpVisitor implements Cloneable{
 	}
 
 	@Override
-	public void visit(PushExp e) {
+	public void visit(PushExp e) {//FIXME
 		if(this.stop){
 			return;
 		}
@@ -951,9 +951,16 @@ public class EvalExpVisitor extends ExpVisitor implements Cloneable{
 
 	@Override
 	public void visit(PresenceExp e) {
-		if(this.env.has(e.getId())){
-			this.value = this.env.get(e.getId());
-		}else{
+		Variable v = null;
+		try{
+			if(this.env.has(e.getId())){
+				this.value = this.env.get(e.getId());
+			}else if((v = this.resolve(e.getId())) != null){
+				this.value = v;
+			}else{
+				this.value = new Value(0d);
+			}
+		}catch(IllegalStateException ise){
 			this.value = new Value(0d);
 		}
 	}

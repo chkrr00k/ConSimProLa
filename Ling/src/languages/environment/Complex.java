@@ -43,7 +43,7 @@ public class Complex extends Variable {
 				if(v.getName().equals(b)){
 					return v.clone();
 				}
-				System.out.println("zz "+v.getName());
+				//System.err.println("Failure on: "+v.getName()+" "+v);
 			}
 	//	}
 		throw new IllegalStateException(b + " was not defined in " + this);

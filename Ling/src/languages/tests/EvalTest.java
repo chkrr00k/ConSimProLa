@@ -707,6 +707,16 @@ public class EvalTest {
 		assertTrue(e.get("expected") instanceof Complex);
 	}
 	@Test
+	public void testPresenceObject() throws Exception {
+		Environment e = this.test("a := {a:5, b:{c:5}};"
+				+ "expected = ?a.b.c;"
+				+ "expected2 = ?a.b.b;"
+				+ "c := $a.b.c;");
+		assertTrue((((Value) e.get("expected")).getValue().equals(5d)));
+		assertTrue((((Value) e.get("expected2")).getValue().equals(0d)));
+		assertTrue((((Value) e.get("c")).getValue().equals(5d)));
+	}
+	@Test
 	public void testObjArray() throws Exception {
 		Environment e = this.test("obj := {arr:[1,2,3]};"
 				+ "expected = $obj.arr[1];"
@@ -716,6 +726,17 @@ public class EvalTest {
 		assertTrue(((Value) e.get("expected")).getValue().equals(2d));
 		assertTrue(((Value) e.get("z")).getValue().equals(3d));
 		assertTrue(((Value) ((Array) e.get("expected2")).get(1)).getValue().equals(3d));
+	}
+	@Test
+	public void testPushObjArray() throws Exception {
+		Environment e = this.test("obj := {arr:[1,2,3]};"
+				+ "expected <- obj.arr;"
+				+ "3 -> obj.arr;"
+				+ "expected2 := $obj.arr;"
+				+ "z = $obj.arr[1];");
+		assertTrue(((Value) e.get("expected")).getValue().equals(1d));
+		assertTrue(((Value) e.get("z")).getValue().equals(2d));
+		assertTrue(((Value) ((Array) e.get("expected2")).get(0)).getValue().equals(3d));
 	}
 }
 

@@ -72,10 +72,8 @@ import languages.operators.*;
  * FACTOR ::= ( SEQ )
  * FACTOR ::= $ IDENT
  * FACTOR ::= $ ARRAY [ EXP ]
- * FACTOR ::= size IDENT //ident is an array
+ * FACTOR ::= size IDENT
  * FACTOR ::= & IDENT 
- * 
- * 
  * 
  * OBJFIELDS ::= OBJFIELDDECL
  * OBJFIELDS ::= OBJFIELDS, OBJFIELDDECL
